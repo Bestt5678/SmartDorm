@@ -33,7 +33,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <div className="bg-ink px-4 py-1.5 text-center text-xs text-white/85">
-        ติดต่อ{CONTACT.role} {CONTACT.name}:{" "}
+        ติดต่อ:{" "}
         <a href={telHref} className="font-semibold text-amber-200 underline">{CONTACT.phone}</a>
       </div>
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-paper/90 backdrop-blur">
@@ -84,7 +84,7 @@ export default function App() {
       </main>
 
       <footer className="mt-12 border-t border-slate-200 p-6 text-center text-sm text-slate-500">
-        © SmartDorm · ติดต่อ{CONTACT.role}{" "}
+        © SmartDorm · ติดต่อ{" "}
         <a href={telHref} className="font-medium text-accent">{CONTACT.phone}</a>
       </footer>
 
