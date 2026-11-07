@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { AppError, asyncHandler } from '../lib/http'
+import { asyncHandler } from '../lib/http'
 import { currentAuth, requireAuth } from '../middleware/auth'
 import { validate, validated } from '../middleware/validate'
 import {
@@ -11,13 +11,6 @@ import {
   type RegisterInput,
 } from '../schemas/auth'
 import { login, me, register, updateProfile } from '../services/auth.service'
-import {
-  buildAuthorizeUrl,
-  completeOAuth,
-  enabledProviders,
-  frontendCallbackUrl,
-  isOAuthProvider,
-} from '../services/oauth.service'
 
 const router = Router()
 
@@ -56,42 +49,5 @@ router.patch(
     res.json(await updateProfile(currentAuth(req).accountId, body))
   }),
 )
-
-// รายชื่อ provider ที่ตั้งค่าไว้ (frontend ใช้ตัดสินใจว่าจะแสดงปุ่มไหน)
-router.get('/providers', (_req, res) => {
-  res.json(enabledProviders())
-})
-
-router.get('/:provider', (req, res, next) => {
-  const { provider } = req.params
-  if (!isOAuthProvider(provider)) {
-    next()
-    return
-  }
-  try {
-    res.redirect(buildAuthorizeUrl(provider))
-  } catch (error) {
-    const message = error instanceof AppError ? error.message : 'เข้าสู่ระบบไม่สำเร็จ'
-    res.redirect(frontendCallbackUrl({ error: message }))
-  }
-})
-
-router.get('/:provider/callback', (req, res, next) => {
-  const { provider } = req.params
-  if (!isOAuthProvider(provider)) {
-    next()
-    return
-  }
-  const query = req.query as Record<string, string | undefined>
-  completeOAuth(provider, { code: query.code, state: query.state, error: query.error })
-    .then(({ token }) => res.redirect(frontendCallbackUrl({ token })))
-    .catch((error: unknown) => {
-      if (!(error instanceof AppError)) {
-        console.error('[oauth]', error)
-      }
-      const message = error instanceof AppError ? error.message : 'เข้าสู่ระบบไม่สำเร็จ'
-      res.redirect(frontendCallbackUrl({ error: message }))
-    })
-})
 
 export default router

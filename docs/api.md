@@ -50,9 +50,6 @@ Authorization: Bearer <jwt>
 | `POST` | `/auth/login` | public |
 | `GET` | `/auth/me` | authenticated |
 | `PATCH` | `/auth/me` | ผู้เช่า แก้ `full_name`, `id_card_no`, `phone` |
-| `GET` | `/auth/providers` | public คืน provider OAuth ที่ตั้งค่าไว้ เช่น `["google","line"]` |
-| `GET` | `/auth/:provider` | public เริ่ม OAuth (`google`, `line`, `facebook`) |
-| `GET` | `/auth/:provider/callback` | provider redirect กลับมาที่นี่ |
 
 ### Login
 
@@ -76,31 +73,15 @@ Response (`/auth/register` คืนรูปแบบเดียวกัน �
   "token": "<jwt>",
   "user": {
     "id": 3,
-    "name": "สมชาย ใจดี",
+    "name": "เช่า หนึ่ง",
     "role": "TENANT",
     "email": "tenant@smartdorm.local",
     "tenant_id": 1,
     "staff_id": null,
-    "phone": "0812345678",
-    "profile_complete": true
+    "phone": "0812345678"
   }
 }
 ```
-
-### Social login (Google / LINE / Facebook)
-
-1. frontend พาผู้ใช้ไปที่ `GET /api/auth/google` แล้ว backend จะ redirect ไปหน้ายินยอมของ provider (มี `state` อายุ 10 นาทีกัน CSRF)
-2. provider redirect กลับมาที่ `<OAUTH_CALLBACK_BASE_URL>/auth/google/callback`
-3. backend redirect ต่อไปที่ `<FRONTEND_URL>/auth/callback?token=<jwt>` หรือ `?error=<ข้อความ>` ถ้าไม่สำเร็จ
-
-การจับคู่บัญชี:
-
-- ถ้าเคยเข้าสู่ระบบด้วย provider นี้แล้ว จะได้บัญชีเดิม
-- ถ้าอีเมลที่ provider **ยืนยันแล้ว** ตรงกับบัญชีผู้เช่าเดิม จะ link เข้าบัญชีนั้น
-- ถ้าไม่ตรงกับบัญชีไหนเลย จะสร้างบัญชีผู้เช่าใหม่ ซึ่ง `profile_complete: false` และต้องกรอก `id_card_no` ผ่าน `PATCH /auth/me` ก่อนจองห้อง
-- อีเมลของบัญชีพนักงานหรือผู้ดูแลจะใช้ social login ไม่ได้
-
-เปิดใช้ provider ไหนให้ใส่ `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `LINE_CHANNEL_ID`/`LINE_CHANNEL_SECRET` หรือ `FACEBOOK_APP_ID`/`FACEBOOK_APP_SECRET` ใน `backend/.env`
 
 ## Rooms และ Room types
 
@@ -142,7 +123,6 @@ POST /bookings
 ```
 
 - การจองจะเปลี่ยนห้องเป็น `ไม่ว่าง` ทันที และกันการจองซ้ำด้วย partial unique index
-- ผู้เช่าต้องมี `id_card_no` ก่อนจอง (ผู้เช่าที่สมัครผ่าน social ต้องกรอกเพิ่ม)
 
 ### Confirm booking
 

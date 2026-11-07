@@ -56,7 +56,6 @@ describe('auth และสิทธิ์การเข้าถึง', () =>
       name: 'ผู้เช่าทดสอบ',
       role: 'TENANT',
       email: 'tenant@test.local',
-      profile_complete: true,
     })
     expect(JSON.stringify(response.body)).not.toContain('password')
   })

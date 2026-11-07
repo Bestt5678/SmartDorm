@@ -36,9 +36,9 @@ const tables: Record<string, Table> = {
     { room_id: 5, room_number: "301", floor: 3, room_type_id: 2, monthly_rate: 4000, status: "ปิดปรับปรุง" },
   ] },
   tenants: { pk: "tenant_id", onCreate: (r) => { r.created_at = new Date().toISOString(); }, rows: [
-    { tenant_id: 1, full_name: "สมชาย ใจดี", id_card_no: "1234567890123", phone: "0812345678", email: "somchai@example.com", created_at: "2026-09-01T09:00:00Z" },
-    { tenant_id: 2, full_name: "สมหญิง รักเรียน", id_card_no: "1234567890124", phone: "0823456789", email: null, created_at: "2026-09-15T10:30:00Z" },
-    { tenant_id: 3, full_name: "ธนา มั่นคง", id_card_no: "1234567890125", phone: null, email: "thana@example.com", created_at: "2026-10-02T14:00:00Z" },
+    { tenant_id: 1, full_name: "เช่า หนึ่ง", id_card_no: "1234567890123", phone: "0812345678", email: "tenant1@example.com", created_at: "2026-09-01T09:00:00Z" },
+    { tenant_id: 2, full_name: "เช่า สอง", id_card_no: "1234567890124", phone: "0823456789", email: null, created_at: "2026-09-15T10:30:00Z" },
+    { tenant_id: 3, full_name: "เช่า สาม", id_card_no: "1234567890125", phone: null, email: "tenant3@example.com", created_at: "2026-10-02T14:00:00Z" },
   ] },
   bookings: { pk: "booking_id", onCreate: (r) => { r.booking_date = today(); }, rows: [
     { booking_id: 1, room_id: 2, tenant_id: 1, booking_date: "2026-09-01", move_in_date: "2026-09-10", status: "ยืนยันแล้ว" },
@@ -50,8 +50,9 @@ const tables: Record<string, Table> = {
     { contract_id: 2, booking_id: 2, start_date: "2026-10-01", end_date: "2027-09-30", deposit: 5000 },
   ] },
   staff: { pk: "staff_id", rows: [
-    { staff_id: 1, full_name: "วิชัย ช่างซ่อม", position: "ช่างซ่อมบำรุง", phone: "0898765432" },
-    { staff_id: 2, full_name: "มาลี ดูแลดี", position: "ผู้ดูแลหอพัก", phone: "0876543210" },
+    { staff_id: 1, full_name: "ช่าง หนึ่ง", position: "ช่างซ่อมบำรุง", phone: "0898765432" },
+    { staff_id: 2, full_name: "ดูแลหอพัก หนึ่ง", position: "ผู้ดูแลหอพัก", phone: "0876543210" },
+    { staff_id: 3, full_name: "แม่บ้าน หนึ่ง", position: "แม่บ้าน", phone: null },
   ] },
   "utility-meters": { pk: "meter_id", rows: [
     { meter_id: 1, room_id: 2, meter_month: "2026-10-01", water_unit: 6, electric_unit: 80 },
@@ -69,7 +70,7 @@ const tables: Record<string, Table> = {
   ] },
 };
 
-const NAMES: Record<string, string> = { TENANT: "สมชาย ใจดี", STAFF: "วิชัย ช่างซ่อม", ADMIN: "ผู้ดูแลหอพัก" };
+const NAMES: Record<string, string> = { TENANT: "เช่า หนึ่ง", STAFF: "ดูแลหอพัก หนึ่ง", ADMIN: "ผู้ดูแลหอพัก" };
 let mockUser: Row | null = null;
 
 export async function mockAdapter(config: InternalAxiosRequestConfig): Promise<AxiosResponse> {
@@ -86,24 +87,20 @@ export async function mockAdapter(config: InternalAxiosRequestConfig): Promise<A
 
   if (url === "/auth/login" && method === "post") {
     if (!body.email || !body.password) throw err(400, "กรอกอีเมลและรหัสผ่าน");
-    mockUser = { id: 1, name: NAMES[body.role] ?? "ผู้ใช้", role: body.role, email: body.email, profile_complete: true };
+    mockUser = { id: 1, name: NAMES[body.role] ?? "ผู้ใช้", role: body.role, email: body.email };
     return ok({ token: `mock-${body.role}`, user: mockUser });
   }
 
   if (url === "/auth/register" && method === "post") {
-    mockUser = { id: 2, name: body.full_name, role: "TENANT", email: body.email, profile_complete: true };
+    mockUser = { id: 2, name: body.full_name, role: "TENANT", email: body.email };
     return ok({ token: "mock-TENANT", user: mockUser }, 201);
   }
-
-  if (url === "/auth/providers" && method === "get") return ok(["google", "line", "facebook"]);
 
   if (url === "/auth/me") {
     const hit = String(config.headers?.Authorization ?? "").match(/^Bearer mock-(\w+)$/);
     if (!hit) throw err(401, "token ไม่ถูกต้อง");
-    const social = { google: "Google", line: "LINE", facebook: "Facebook" }[hit[1] as "google" | "line" | "facebook"];
-    if (social && !mockUser) mockUser = { id: 3, name: `ผู้ใช้ ${social}`, role: "TENANT", email: null, profile_complete: false };
     if (method === "patch" && mockUser) {
-      mockUser = { ...mockUser, name: body.full_name ?? mockUser.name, phone: body.phone, profile_complete: mockUser.profile_complete || Boolean(body.id_card_no) };
+      mockUser = { ...mockUser, name: body.full_name ?? mockUser.name, phone: body.phone };
     }
     return ok(mockUser);
   }

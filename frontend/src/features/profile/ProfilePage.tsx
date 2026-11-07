@@ -10,7 +10,7 @@ const ProfileSchema = z.object({
   phone: z.string().trim().refine((v) => v === "" || /^\d{9,10}$/.test(v), "เบอร์โทรต้องเป็นตัวเลข 9-10 หลัก"),
 });
 
-/** ข้อมูลส่วนตัวของผู้เช่า (ผู้ที่สมัครผ่าน Google/LINE/Facebook ต้องกรอกเลขบัตรก่อนจองห้อง) */
+/** ข้อมูลส่วนตัวของผู้เช่า */
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
   const [form, setForm] = useState({ full_name: user?.name ?? "", id_card_no: "", phone: user?.phone ?? "" });
@@ -25,9 +25,6 @@ export default function ProfilePage() {
     if (!parsed.success) {
       const f = z.flattenError(parsed.error).fieldErrors as Record<string, string[] | undefined>;
       return setErrors(Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v?.[0] ?? ""])));
-    }
-    if (!user?.profile_complete && !parsed.data.id_card_no) {
-      return setErrors({ id_card_no: "กรอกเลขบัตรประชาชนเพื่อใช้จองห้อง" });
     }
     setErrors({});
     setSaving(true);
@@ -47,20 +44,14 @@ export default function ProfilePage() {
   return (
     <section className="max-w-lg">
       <h2 className="text-lg font-semibold">ข้อมูลส่วนตัว</h2>
-      <p className="mb-4 text-sm text-slate-500">อีเมล: {user?.email ?? "ไม่มี (เข้าสู่ระบบผ่านบัญชีโซเชียล)"}</p>
-
-      {!user?.profile_complete && (
-        <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-          กรุณากรอกเลขบัตรประชาชนก่อนจองห้องพัก (ใช้สำหรับทำสัญญาเช่า)
-        </p>
-      )}
+      <p className="mb-4 text-sm text-slate-500">อีเมล: {user?.email}</p>
 
       <form onSubmit={submit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
         <Field label="ชื่อ-นามสกุล" error={errors.full_name}>
           <input className={inputCls} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
         </Field>
         <Field
-          label={user?.profile_complete ? "เลขบัตรประชาชน (กรอกเฉพาะเมื่อต้องการแก้ไข)" : "เลขบัตรประชาชน"}
+          label="เลขบัตรประชาชน (กรอกเฉพาะเมื่อต้องการแก้ไข)"
           error={errors.id_card_no}
         >
           <input className={inputCls} inputMode="numeric" value={form.id_card_no}

@@ -17,7 +17,7 @@ export const loginSchema = z.object({
   role: z.enum(ROLES).optional(),
 })
 
-// ผู้เช่าแก้ข้อมูลตัวเอง (ผู้ที่สมัครผ่าน OAuth ต้องกรอกเลขบัตรก่อนจองห้อง)
+// ผู้เช่าแก้ข้อมูลตัวเอง
 export const profileUpdateSchema = z
   .object({
     fullName: z.string().trim().min(2, 'กรุณากรอกชื่อ-นามสกุล').max(100).optional(),

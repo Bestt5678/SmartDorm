@@ -13,11 +13,11 @@ const ROLE_LABEL: Record<Role, string> = {
 
 type AccountWithPeople = {
   accountId: number
-  email: string | null
+  email: string
   role: string
   tenantId: number | null
   staffId: number | null
-  tenant?: { fullName: string; idCardNo: string | null; phone: string | null } | null
+  tenant?: { fullName: string; phone: string | null } | null
   staff?: { fullName: string } | null
 }
 
@@ -36,7 +36,7 @@ export function publicUser(account: AccountWithPeople) {
   const name =
     account.tenant?.fullName ??
     account.staff?.fullName ??
-    (account.role === 'ADMIN' ? 'ผู้ดูแลระบบ' : (account.email ?? 'ผู้ใช้'))
+    (account.role === 'ADMIN' ? 'ผู้ดูแลระบบ' : account.email)
 
   return {
     id: account.accountId,
@@ -46,8 +46,6 @@ export function publicUser(account: AccountWithPeople) {
     tenantId: account.tenantId,
     staffId: account.staffId,
     phone: account.tenant?.phone ?? null,
-    // ผู้เช่าที่สมัครผ่าน OAuth ต้องกรอกเลขบัตรประชาชนก่อนจองห้อง
-    profileComplete: account.role !== 'TENANT' || Boolean(account.tenant?.idCardNo),
   }
 }
 
@@ -98,8 +96,7 @@ export async function login(input: LoginInput) {
     include: { tenant: true, staff: true },
   })
 
-  // บัญชี OAuth ไม่มีรหัสผ่าน จึงเข้าสู่ระบบด้วยอีเมล/รหัสผ่านไม่ได้
-  if (!account?.passwordHash) {
+  if (!account) {
     throw new AppError(401, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
   }
 

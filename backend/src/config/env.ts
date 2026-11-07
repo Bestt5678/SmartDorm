@@ -5,11 +5,6 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
 dotenv.config({ path: `.env.${nodeEnv}` })
 dotenv.config()
 
-const optionalSecret = z.preprocess(
-  (value) => (value === '' ? undefined : value),
-  z.string().optional(),
-)
-
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // ตรงกับ proxy ใน frontend/vite.config.ts
@@ -32,17 +27,6 @@ const envSchema = z.object({
         return false
       }
     }, 'APP_TIMEZONE ไม่ถูกต้อง'),
-
-  // OAuth (Google / LINE / Facebook): ใส่ทั้ง CLIENT_ID และ CLIENT_SECRET เพื่อเปิดใช้ provider นั้น
-  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
-  // URL ของ /api ที่ provider จะ redirect กลับมา ต้องลงทะเบียนไว้ที่ console ของ provider ด้วย
-  OAUTH_CALLBACK_BASE_URL: z.string().url().default('http://localhost:5173/api'),
-  GOOGLE_CLIENT_ID: optionalSecret,
-  GOOGLE_CLIENT_SECRET: optionalSecret,
-  LINE_CHANNEL_ID: optionalSecret,
-  LINE_CHANNEL_SECRET: optionalSecret,
-  FACEBOOK_APP_ID: optionalSecret,
-  FACEBOOK_APP_SECRET: optionalSecret,
 })
 
 export const env = envSchema.parse(process.env)

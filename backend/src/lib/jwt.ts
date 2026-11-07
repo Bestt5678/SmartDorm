@@ -4,7 +4,7 @@ import type { Role } from '../constants'
 
 export type AuthPayload = {
   accountId: number
-  email: string | null
+  email: string
   role: Role
   tenantId: number | null
   staffId: number | null

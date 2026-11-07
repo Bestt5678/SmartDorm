@@ -20,7 +20,7 @@ library เสริม: JWT + bcrypt (auth), multer (อัปโหลดส�
 ## ความสามารถหลัก
 
 - หน้าแรกแสดงห้องพักและราคา กรองตามประเภทห้องได้โดยไม่ต้องเข้าสู่ระบบ
-- สมัครสมาชิก / เข้าสู่ระบบด้วยอีเมล (JWT) แยกแท็บตามบทบาท หรือเข้าสู่ระบบด้วย Google / LINE / Facebook (OAuth)
+- สมัครสมาชิก / เข้าสู่ระบบด้วยอีเมล (JWT) แยกแท็บตามบทบาท
 - ผู้เช่าจองห้องว่าง ยกเลิกการจอง ดูสัญญาและใบแจ้งหนี้ของตนเอง
 - เจ้าหน้าที่ยืนยันการจองแล้วระบบออกสัญญาเช่าและใบแจ้งหนี้เงินมัดจำให้อัตโนมัติ
 - ผู้เช่าชำระเงินโดยแนบสลิป (JPG/PNG/WEBP/PDF ไม่เกิน 5MB) แล้วเจ้าหน้าที่ตรวจ อนุมัติ หรือปฏิเสธ หรือบันทึกรับเงินสดเองได้
@@ -120,18 +120,6 @@ APP_TIMEZONE="Asia/Bangkok"
 
 frontend เรียก API ผ่าน Vite proxy (`/api` → `http://localhost:3000`) ถ้าจะลองหน้าเว็บโดยไม่รัน backend ให้สร้าง `frontend/.env` แล้วตั้ง `VITE_USE_MOCK=true` (ดู `frontend/.env.example`)
 
-#### เข้าสู่ระบบด้วย Google / LINE / Facebook (ไม่บังคับ)
-
-ปุ่ม social จะแสดงเฉพาะ provider ที่ตั้งค่าใน `backend/.env` ครบทั้ง ID และ SECRET แล้วเท่านั้น
-
-| Provider | ตัวแปร | สร้าง credential ที่ |
-| --- | --- | --- |
-| Google | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud Console → APIs & Services → Credentials (OAuth client: Web application) |
-| LINE | `LINE_CHANNEL_ID`, `LINE_CHANNEL_SECRET` | LINE Developers → LINE Login channel (ถ้าต้องการอีเมล ต้องขอสิทธิ์ email ด้วย) |
-| Facebook | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` | Meta for Developers → Facebook Login |
-
-Callback URL ที่ต้องลงทะเบียนไว้กับ provider คือ `<OAUTH_CALLBACK_BASE_URL>/auth/<provider>/callback` เช่น `http://localhost:5173/api/auth/google/callback` ส่วน `FRONTEND_URL` คือหน้าเว็บที่ระบบจะพากลับไปหลังเข้าสู่ระบบ ผู้เช่าที่สมัครผ่าน social ต้องกรอกเลขบัตรประชาชนในเมนู "ข้อมูลส่วนตัว" ก่อนจองห้อง
-
 ### 3. ติดตั้ง dependencies
 
 ```powershell
@@ -210,7 +198,7 @@ npm run test --prefix backend
 
 | กลุ่ม | Endpoint |
 | --- | --- |
-| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET/PATCH /api/auth/me`, `GET /api/auth/providers`, `GET /api/auth/:provider` (OAuth) |
+| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET/PATCH /api/auth/me` |
 | ห้อง | `/api/room-types`, `/api/rooms` (GET เป็น public ส่วนเพิ่ม/แก้/ลบต้องเป็น STAFF/ADMIN) |
 | คน | `/api/tenants` (STAFF/ADMIN), `/api/staff` (GET: STAFF/ADMIN, จัดการ: ADMIN) |
 | การจอง | `/api/bookings`, `POST /api/bookings/:id/confirm`, `/cancel`, `/complete` |

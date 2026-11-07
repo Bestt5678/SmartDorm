@@ -33,10 +33,8 @@ export const UserSchema = z.object({
   id: z.coerce.number(),
   name: z.string(),
   role: RoleSchema,
-  email: z.string().nullish(),
+  email: z.string(),
   phone: z.string().nullish(),
-  // ผู้เช่าที่สมัครผ่าน Google/LINE/Facebook ต้องกรอกเลขบัตรก่อนจองห้อง
-  profile_complete: z.boolean().optional(),
 });
 
 export const LoginResponseSchema = z.object({

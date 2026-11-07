@@ -18,13 +18,12 @@ function Page({ entry }: { entry: Entry }) {
 }
 
 export default function App() {
-  const { user, logout, oauthError, clearOAuthError } = useAuth();
+  const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [active, setActive] = useState<string | null>(null);
 
   const visible = user ? entriesFor(user.role) : [];
   const current = visible.find((e) => e.key === active) ?? visible[0];
-  const needsProfile = user?.role === "TENANT" && user.profile_complete === false;
 
   function signOut() {
     logout();
@@ -81,18 +80,6 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-6xl p-4">
-        {oauthError && (
-          <div role="alert" className="mb-4 flex items-start justify-between gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
-            <span>เข้าสู่ระบบผ่านบัญชีโซเชียลไม่สำเร็จ: {oauthError}</span>
-            <button onClick={clearOAuthError} className="font-medium underline">ปิด</button>
-          </div>
-        )}
-        {needsProfile && current?.key !== "profile" && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-            <span>กรุณากรอกเลขบัตรประชาชนในข้อมูลส่วนตัวก่อนจองห้องพัก</span>
-            <button onClick={() => setActive("profile")} className="font-medium underline">ไปที่ข้อมูลส่วนตัว</button>
-          </div>
-        )}
         {user && current ? <Page key={current.key} entry={current} /> : <HomePage onLogin={() => setShowLogin(true)} />}
       </main>
 

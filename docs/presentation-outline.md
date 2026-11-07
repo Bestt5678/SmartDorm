@@ -13,7 +13,7 @@
 ## Slide 3 - Scope
 - In scope
   - ค้นหาและดูรายละเอียดห้องพัก
-  - สมัครสมาชิกและเข้าสู่ระบบ (อีเมล หรือ Google / LINE / Facebook)
+  - สมัครสมาชิกและเข้าสู่ระบบด้วยอีเมล
   - จองห้องและติดตามสถานะการจอง
   - สัญญาเช่า ใบแจ้งหนี้ และการชำระเงินแบบ Mock
   - แจ้งซ่อมและติดตามสถานะ
@@ -33,7 +33,7 @@
 - Frontend: React + TypeScript + Zod + Tailwind CSS + Axios (build ด้วย Vite, หน้าจัดการข้อมูลสร้างจาก config ของแต่ละตาราง)
 - Backend: Node.js + Express + TypeScript + Zod + Prisma
 - Database: PostgreSQL
-- Auth: JWT + bcrypt และ OAuth 2.0 (Google / LINE / Facebook)
+- Auth: JWT + bcrypt
 - API: REST (`/api/...`)
 - Diagram suggestion: Browser -> React SPA -> Express API -> Prisma -> PostgreSQL
 - หมายเหตุ: แสดงลำดับการเรียก API และการตรวจสอบ role ใน middleware

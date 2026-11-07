@@ -27,10 +27,6 @@ export async function createBooking(
         if (!tenant) {
           throw new AppError(404, 'ไม่พบผู้เช่า')
         }
-        // ผู้เช่าที่สมัครผ่าน Google/LINE/Facebook ยังไม่มีเลขบัตรประชาชน
-        if (!tenant.idCardNo) {
-          throw new AppError(400, 'กรุณากรอกเลขบัตรประชาชนในหน้าข้อมูลส่วนตัวก่อนจองห้อง')
-        }
 
         const room = await tx.room.findUnique({ where: { roomId: input.roomId } })
         if (!room) {

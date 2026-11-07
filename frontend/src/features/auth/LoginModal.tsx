@@ -1,22 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { api, errorMessage } from "../../api/client";
+import { errorMessage } from "../../api/client";
 import { Button, Field, inputCls } from "../../components/ui";
 import { useAuth } from "./AuthContext";
 import { LoginFormSchema, RegisterFormSchema, ROLE_LABEL, type Role } from "./schema";
-import { PROVIDERS, startSocialLogin, type Provider } from "./social";
 
 const roles: Role[] = ["TENANT", "STAFF", "ADMIN"];
 const hint: Record<Role, string> = {
   TENANT: "ดูใบแจ้งหนี้ จองห้อง และแจ้งซ่อมห้องของคุณ",
   STAFF: "จัดการการจอง ใบแจ้งหนี้ และงานซ่อม",
   ADMIN: "ดูแลระบบและเจ้าหน้าที่ทั้งหมด",
-};
-
-const providerStyle: Record<Provider, { label: string; className: string; mark: string }> = {
-  google: { label: "Google", mark: "G", className: "border border-slate-300 bg-white hover:bg-slate-50" },
-  line: { label: "LINE", mark: "LINE", className: "bg-[#06C755] text-white hover:brightness-95" },
-  facebook: { label: "Facebook", mark: "f", className: "bg-[#1877F2] text-white hover:brightness-95" },
 };
 
 const blankRegister = { full_name: "", id_card_no: "", phone: "", email: "", password: "", confirm_password: "" };
@@ -35,7 +28,6 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [providers, setProviders] = useState<Provider[]>([]);
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,14 +36,6 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  // แสดงเฉพาะปุ่ม social ที่ backend ตั้งค่า client ID ไว้แล้ว
-  useEffect(() => {
-    api
-      .get("/auth/providers")
-      .then(({ data }) => setProviders(z.array(z.enum(PROVIDERS)).catch([]).parse(data)))
-      .catch(() => setProviders([]));
-  }, []);
 
   function switchMode(next: "login" | "register") {
     setMode(next);
@@ -165,28 +149,13 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
         </Button>
 
         {(mode === "register" || role === "TENANT") && (
-          <div className="space-y-2">
-            {providers.length > 0 && (
-              <>
-                <div className="flex items-center gap-3 text-xs text-slate-400">
-                  <span className="h-px flex-1 bg-slate-200" />หรือเข้าสู่ระบบด้วย<span className="h-px flex-1 bg-slate-200" />
-                </div>
-                {providers.map((p) => (
-                  <button key={p} type="button" onClick={() => startSocialLogin(p)}
-                    className={`flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium ${providerStyle[p].className}`}>
-                    <span className="text-xs font-extrabold">{providerStyle[p].mark}</span> {providerStyle[p].label}
-                  </button>
-                ))}
-              </>
-            )}
-            <p className="text-center text-sm text-slate-600">
-              {mode === "login" ? "ยังไม่มีบัญชี? " : "มีบัญชีแล้ว? "}
-              <button type="button" className="font-medium text-accent underline"
-                onClick={() => switchMode(mode === "login" ? "register" : "login")}>
-                {mode === "login" ? "สมัครสมาชิก" : "เข้าสู่ระบบ"}
-              </button>
-            </p>
-          </div>
+          <p className="text-center text-sm text-slate-600">
+            {mode === "login" ? "ยังไม่มีบัญชี? " : "มีบัญชีแล้ว? "}
+            <button type="button" className="font-medium text-accent underline"
+              onClick={() => switchMode(mode === "login" ? "register" : "login")}>
+              {mode === "login" ? "สมัครสมาชิก" : "เข้าสู่ระบบ"}
+            </button>
+          </p>
         )}
         {mode === "login" && role !== "TENANT" && (
           <p className="text-center text-xs text-slate-500">พนักงานและผู้ดูแลเข้าสู่ระบบด้วยอีเมลเท่านั้น</p>

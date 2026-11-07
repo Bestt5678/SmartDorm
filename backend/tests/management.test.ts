@@ -264,21 +264,8 @@ describe('login ตามบทบาทและข้อมูลส่วน�
     expect(mismatch.body.message).toContain('ผู้เช่า')
   })
 
-  it('ผู้เช่าที่ยังไม่มีเลขบัตรต้องกรอกในข้อมูลส่วนตัวก่อนจองห้อง', async () => {
-    const tenant = await prisma.tenant.findFirstOrThrow({ where: { email: 'tenant@test.local' } })
-    await prisma.tenant.update({ where: { tenantId: tenant.tenantId }, data: { idCardNo: null } })
+  it('ผู้เช่าแก้ข้อมูลส่วนตัวได้ และห้ามใช้เลขบัตรซ้ำกับคนอื่น', async () => {
     const token = await loginAs('tenant@test.local')
-    const room = await prisma.room.findFirstOrThrow()
-
-    const me = await request(app).get('/api/auth/me').set(bearer(token))
-    expect(me.body.profile_complete).toBe(false)
-
-    const blocked = await request(app)
-      .post('/api/bookings')
-      .set(bearer(token))
-      .send({ room_id: room.roomId, move_in_date: '2099-01-01' })
-    expect(blocked.status).toBe(400)
-    expect(blocked.body.message).toContain('เลขบัตรประชาชน')
 
     const duplicateId = await request(app)
       .patch('/api/auth/me')
@@ -291,13 +278,7 @@ describe('login ตามบทบาทและข้อมูลส่วน�
       .set(bearer(token))
       .send({ id_card_no: '1231231231231', phone: '0899999999' })
     expect(updated.status).toBe(200)
-    expect(updated.body).toMatchObject({ profile_complete: true, phone: '0899999999' })
-
-    const booked = await request(app)
-      .post('/api/bookings')
-      .set(bearer(token))
-      .send({ room_id: room.roomId, move_in_date: '2099-01-01' })
-    expect(booked.status).toBe(201)
+    expect(updated.body).toMatchObject({ phone: '0899999999' })
   })
 
   it('validation error คืน path เป็น snake_case', async () => {
