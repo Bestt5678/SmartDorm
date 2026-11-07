@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartDorm Presentation</title>
+  <style>
+    :root {
+      --brand: #0f766e;
+      --brand-dark: #115e59;
+      --brand-soft: #d9f3ee;
+      --accent: #f59e0b;
+      --ink: #142522;
+      --muted: #5f736f;
+      --paper: #fbfdfc;
+      --line: #dbe7e4;
+      --danger: #b91c1c;
+      --shadow: 0 24px 70px rgba(15, 118, 110, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #e9f2f0;
+      color: var(--ink);
+      font-family: "Segoe UI", "Leelawadee UI", "Tahoma", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .deck {
+      width: min(96vw, 1280px);
+      aspect-ratio: 16 / 9;
+      position: relative;
+      background: var(--paper);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      padding: 54px 64px 58px;
+      background:
+        radial-gradient(circle at 94% 2%, rgba(15, 118, 110, 0.11), transparent 28%),
+        radial-gradient(circle at 2% 96%, rgba(245, 158, 11, 0.09), transparent 24%),
+        var(--paper);
+    }
+
+    .slide.active { display: flex; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 58px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-top: 18px;
+    }
+
+    h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-top: 14px;
+    }
+
+    h3 {
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    p, li, td, th {
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .lead {
+      margin-top: 18px;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 19px;
+    }
+
+    .content {
+      flex: 1;
+      min-height: 0;
+      margin-top: 28px;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      padding: 18px 20px;
+      box-shadow: 0 8px 20px rgba(20, 37, 34, 0.04);
+    }
+
+    .card strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .card ul, .clean {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .card li + li { margin-top: 6px; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: #eef7f4;
+      color: var(--brand-dark);
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #cfe8e2;
+    }
+
+    .role-card {
+      border-top: 5px solid var(--brand);
+    }
+
+    .role-card.staff { border-top-color: var(--accent); }
+    .role-card.admin { border-top-color: #1d4ed8; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 108px;
+      padding: 14px 12px;
+      border-radius: 16px;
+      background: white;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .flow-box small {
+      color: var(--brand);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .flow-box.highlight {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+
+    .flow-box.highlight small { color: #a7f3d0; }
+
+    .flow-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 16px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: white;
+    }
+
+    .step-num {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--brand);
+      color: white;
+      font-weight: 800;
+    }
+
+    .step strong { display: block; margin-bottom: 3px; }
+    .step p { color: var(--muted); font-size: 14px; }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+      background: white;
+      border: 1px solid var(--line);
+    }
+
+    .table th, .table td {
+      padding: 11px 13px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .table th {
+      background: #edf7f4;
+      color: var(--brand-dark);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .table tr:last-child td { border-bottom: 0; }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 14px; }
+    .mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; }
+
+    .title-slide {
+      justify-content: center;
+      background:
+        radial-gradient(circle at 85% 10%, rgba(167, 243, 208, 0.28), transparent 32%),
+        radial-gradient(circle at 10% 100%, rgba(245, 158, 11, 0.22), transparent 30%),
+        linear-gradient(135deg, #0b3d38 0%, #0f766e 62%, #159488 100%);
+      color: white;
+    }
+
+    .title-slide .eyebrow {
+      background: rgba(255, 255, 255, 0.16);
+      color: #d1fae5;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .title-slide h1 {
+      font-size: 78px;
+      max-width: 900px;
+    }
+
+    .title-slide .lead {
+      color: #d2f3ed;
+      max-width: 760px;
+    }
+
+    .title-meta {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-top: 42px;
+      color: #bdf0e6;
+      font-size: 15px;
+    }
+
+    .stat {
+      min-width: 160px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.11);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 27px;
+      margin-bottom: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.warn { background: #fef3c7; color: #92400e; }
+    .badge.info { background: #dbeafe; color: #1e40af; }
+
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .screen {
+      min-height: 94px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: white;
+      padding: 14px;
+    }
+
+    .screen span {
+      display: inline-block;
+      width: 34px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      margin-bottom: 12px;
+    }
+
+    .screen strong { display: block; margin-bottom: 5px; }
+    .screen p { color: var(--muted); font-size: 13px; }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer strong { color: var(--brand); }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 5px;
+      width: 100%;
+      background: #e4efec;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--brand), #34d399);
+      transition: width 180ms ease;
+    }
+
+    .nav {
+      position: absolute;
+      right: 22px;
+      bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 4;
+    }
+
+    .nav button {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--brand-dark);
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(20, 37, 34, 0.08);
+    }
+
+    .nav button:hover { background: var(--brand-soft); }
+
+    .counter {
+      min-width: 58px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hint {
+      position: absolute;
+      left: 64px;
+      bottom: 24px;
+      color: #94a8a3;
+      font-size: 12px;
+      z-index: 3;
+    }
+
+    @media (max-width: 900px) {
+      .deck { width: 100vw; height: 100vh; aspect-ratio: auto; border-radius: 0; }
+      .slide { padding: 34px 28px 62px; }
+      h1 { font-size: 40px; }
+      .title-slide h1 { font-size: 48px; }
+      h2 { font-size: 28px; }
+      .lead { font-size: 16px; }
+      .grid-4, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow { grid-template-columns: 1fr; }
+      .flow-arrow { transform: rotate(90deg); }
+      .screen-grid { grid-template-columns: 1fr; }
+      .hint { display: none; }
+    }
+
+    @media print {
+      body { display: block; overflow: visible; background: white; }
+      .deck { width: 100%; aspect-ratio: auto; box-shadow: none; border-radius: 0; }
+      .slide { display: flex !important; position: relative; inset: auto; min-height: 720px; page-break-after: always; }
+      .nav, .progress, .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="SmartDorm presentation">
+    <section class="slide title-slide active">
+      <span class="eyebrow">Dormitory Booking &amp; Management</span>
+      <h1>SmartDorm</h1>
+      <p class="lead">ระบบจองห้องพักและจัดการหอพักออนไลน์ ที่รวมการค้นหาห้อง การจอง สัญญา ใบแจ้งหนี้ การชำระเงิน และงานซ่อมไว้ในที่เดียว</p>
+      <div class="title-meta">
+        <div class="stat"><strong>3</strong>บทบาทผู้ใช้งาน</div>
+        <div class="stat"><strong>36</strong>ห้องพักในข้อมูลตัวอย่าง</div>
+        <div class="stat"><strong>11</strong>ตารางในฐานข้อมูล</div>
+      </div>
+      <p class="small" style="margin-top: 34px; color: #bdf0e6;">ชื่อสมาชิกในทีม | วิชา / อาจารย์ที่ปรึกษา | วันที่นำเสนอ</p>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">01 · Overview</span>
+      <h2>ปัญหาและเป้าหมาย</h2>
+      <div class="content grid-2">
+        <div class="card">
+          <strong>ปัญหาที่พบ</strong>
+          <ul>
+            <li>การจองห้องและการติดต่อทำผ่านหลายช่องทาง</li>
+            <li>สถานะห้อง การจอง และการชำระเงินไม่รวมศูนย์</li>
+            <li>เอกสารสัญญาและใบแจ้งหนี้ต้องจัดทำซ้ำด้วยมือ</li>
+            <li>ผู้เช่าไม่สามารถติดตามสถานะได้ด้วยตนเอง</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>เป้าหมายของระบบ</strong>
+          <ul>
+            <li>ให้ผู้เช่าค้นหาและจองห้องได้ด้วยตนเอง</li>
+            <li>ให้ผู้ดูแลยืนยันการจองและออกเอกสารในระบบเดียว</li>
+            <li>ติดตามการชำระเงินและงานซ่อมได้แบบเรียลไทม์</li>
+            <li>ลดงานเอกสารซ้ำซ้อนและข้อผิดพลาดจากข้อมูลกระจัดกระจาย</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Problem &amp; Goal</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">02 · Scope</span>
+      <h2>ขอบเขตของโปรเจกต์</h2>
+      <div class="content grid-2">
+        <div class="card">
+          <strong>อยู่ในขอบเขต</strong>
+          <ul>
+            <li>ค้นหา กรอง และดูรายละเอียดห้องพัก</li>
+            <li>สมัครสมาชิก เข้าสู่ระบบ และจัดการสิทธิ์ตาม role</li>
+            <li>ส่งคำขอจอง ติดตาม และยกเลิกการจอง</li>
+            <li>สัญญาเช่า ใบแจ้งหนี้ และการชำระเงินแบบ Mock</li>
+            <li>แจ้งซ่อมและติดตามสถานะงานซ่อม</li>
+            <li>หลังบ้านสำหรับ ADMIN และ STAFF</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>ยังไม่อยู่ในขอบเขต</strong>
+          <ul>
+            <li>เชื่อมต่อ payment gateway จริง</li>
+            <li>แจ้งเตือนผ่าน LINE หรือ Email</li>
+            <li>Mobile application</li>
+            <li>ยืนยันตัวตนด้วย OTP หรือ e-KYC</li>
+            <li>ระบบแชทระหว่างผู้เช่าและผู้ดูแล</li>
+            <li>รายงานวิเคราะห์เชิงลึกขั้นสูง</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Scope</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">03 · Users</span>
+      <h2>บทบาทและสิทธิ์การใช้งาน</h2>
+      <div class="content grid-3">
+        <div class="card role-card">
+          <span class="badge">TENANT</span>
+          <h3 style="margin-top: 14px;">ผู้เช่า</h3>
+          <ul>
+            <li>ค้นหาและจองห้องว่าง</li>
+            <li>ดูการจองและใบแจ้งหนี้ของตนเอง</li>
+            <li>อัปโหลดสลิปการชำระเงิน</li>
+            <li>แจ้งซ่อมและติดตามสถานะ</li>
+          </ul>
+        </div>
+        <div class="card role-card staff">
+          <span class="badge warn">STAFF</span>
+          <h3 style="margin-top: 14px;">พนักงาน</h3>
+          <ul>
+            <li>ดูภาพรวมของหอพัก</li>
+            <li>รับงานและอัปเดตสถานะงานซ่อม</li>
+            <li>ดูข้อมูลการจองและผู้เช่า</li>
+            <li>ดูแลใบแจ้งหนี้ในภาพรวม</li>
+          </ul>
+        </div>
+        <div class="card role-card admin">
+          <span class="badge info">ADMIN</span>
+          <h3 style="margin-top: 14px;">ผู้ดูแลระบบ</h3>
+          <ul>
+            <li>จัดการห้องและประเภทห้อง</li>
+            <li>ยืนยันการจองและสร้างสัญญา</li>
+            <li>ออกหรือยกเลิกใบแจ้งหนี้</li>
+            <li>เข้าถึงข้อมูลและ dashboard ทั้งหมด</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Roles &amp; Permissions</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">04 · Architecture</span>
+      <h2>สถาปัตยกรรมระบบ</h2>
+      <div class="content">
+        <div class="flow">
+          <div class="flow-box"><small>Client</small><strong>React SPA</strong><p class="small muted">Vite + TypeScript</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box highlight"><small>API</small><strong>Express</strong><p class="small">REST + JWT</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box"><small>Data</small><strong>Prisma</strong><p class="small muted">PostgreSQL</p></div>
+        </div>
+        <div class="grid-3" style="margin-top: 18px;">
+          <div class="card">
+            <strong>Frontend</strong>
+            <p>React 19, React Router, Tailwind CSS, Axios, Zod และ lucide-react</p>
+          </div>
+          <div class="card">
+            <strong>Backend</strong>
+            <p>Express 5, Prisma 7, Zod validation, role middleware และ rate limit</p>
+          </div>
+          <div class="card">
+            <strong>Security</strong>
+            <p>bcrypt สำหรับรหัสผ่าน, JWT สำหรับ session และ helmet สำหรับ HTTP headers</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>System Architecture</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">05 · Data Model</span>
+      <h2>โครงสร้างฐานข้อมูล</h2>
+      <div class="content grid-2">
+        <div class="card">
+          <strong>ตารางหลัก</strong>
+          <div class="pill-row">
+            <span class="pill">room_type</span>
+            <span class="pill">room</span>
+            <span class="pill">tenant</span>
+            <span class="pill">booking</span>
+            <span class="pill">contract</span>
+            <span class="pill">invoice</span>
+            <span class="pill">payment</span>
+          </div>
+          <strong style="margin-top: 22px;">ตารางสนับสนุน</strong>
+          <div class="pill-row">
+            <span class="pill">staff</span>
+            <span class="pill">utility_meter</span>
+            <span class="pill">repair_request</span>
+            <span class="pill">account</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>ความสัมพันธ์สำคัญ</strong>
+          <ul>
+            <li><span class="mono">room_type 1:N room</span></li>
+            <li><span class="mono">tenant 1:N booking</span></li>
+            <li><span class="mono">booking 1:1 contract</span></li>
+            <li><span class="mono">contract 1:N invoice</span></li>
+            <li><span class="mono">invoice 1:N payment</span></li>
+            <li><span class="mono">room 1:N meter / repair</span></li>
+          </ul>
+          <p class="small muted" style="margin-top: 14px;">เพิ่ม partial unique index เพื่อป้องกันห้องถูกจองซ้ำขณะมี booking ที่ยัง active</p>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Database Design</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">06 · Core Flow</span>
+      <h2>เส้นทางการทำงานหลัก</h2>
+      <div class="content">
+        <div class="flow" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+          <div class="flow-box"><small>Step 1</small><strong>ค้นหาห้อง</strong><p class="small muted">ดูรายละเอียดและสิ่งอำนวยความสะดวก</p></div>
+          <div class="flow-box"><small>Step 2</small><strong>ส่งคำขอจอง</strong><p class="small muted">ห้องถูกกันสถานะทันที</p></div>
+          <div class="flow-box highlight"><small>Step 3</small><strong>ยืนยันการจอง</strong><p class="small">ADMIN สร้างสัญญาและใบมัดจำ</p></div>
+          <div class="flow-box"><small>Step 4</small><strong>ชำระเงิน</strong><p class="small muted">สถานะเปลี่ยนเป็นชำระบางส่วนหรือชำระแล้ว</p></div>
+          <div class="flow-box"><small>Step 5</small><strong>แจ้งซ่อม</strong><p class="small muted">STAFF รับงานและปิดงาน</p></div>
+        </div>
+        <div class="grid-3" style="margin-top: 20px;">
+          <div class="card"><strong>Booking</strong><p>รอดำเนินการ → ยืนยันแล้ว → เสร็จสิ้น / ยกเลิก</p></div>
+          <div class="card"><strong>Invoice</strong><p>ค้างชำระ → ชำระบางส่วน → ชำระแล้ว / ยกเลิก</p></div>
+          <div class="card"><strong>Repair</strong><p>รอดำเนินการ → กำลังดำเนินการ → เสร็จสิ้น / ยกเลิก</p></div>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Business Flows</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">07 · Screens</span>
+      <h2>หน้าจอหลักของระบบ</h2>
+      <div class="content screen-grid">
+        <div class="screen"><span></span><strong>Home</strong><p>Hero, ค้นหาห้อง, ประเภทห้อง และห้องแนะนำ</p></div>
+        <div class="screen"><span></span><strong>Rooms</strong><p>กรองตามประเภท ชั้น สถานะ และช่วงราคา</p></div>
+        <div class="screen"><span></span><strong>Room Detail</strong><p>รูปภาพ สิ่งอำนวยความสะดวก และปุ่มจอง</p></div>
+        <div class="screen"><span></span><strong>My Bookings</strong><p>ติดตามสถานะและยกเลิกการจอง</p></div>
+        <div class="screen"><span></span><strong>My Invoices</strong><p>ดูยอดคงเหลือและประวัติการชำระเงิน</p></div>
+        <div class="screen"><span></span><strong>My Repairs</strong><p>แจ้งซ่อมและติดตามความคืบหน้า</p></div>
+        <div class="screen"><span></span><strong>Admin Dashboard</strong><p>ภาพรวมห้อง การจอง รายได้ และงานซ่อม</p></div>
+        <div class="screen"><span></span><strong>Admin Operations</strong><p>จัดการห้อง การจอง ใบแจ้งหนี้ และผู้เช่า</p></div>
+        <div class="screen"><span></span><strong>Staff Workspace</strong><p>รับงานซ่อมและอัปเดตสถานะงาน</p></div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Product Walkthrough</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">08 · Security</span>
+      <h2>ความปลอดภัยและการออกแบบ API</h2>
+      <div class="content grid-2">
+        <div class="card">
+          <strong>Authentication &amp; Authorization</strong>
+          <ul>
+            <li>รหัสผ่านถูก hash ด้วย bcrypt</li>
+            <li>ออก token ด้วย JWT และกำหนดวันหมดอายุ</li>
+            <li>ตรวจสอบ role ใน middleware ก่อนเข้าถึง endpoint</li>
+            <li>ผู้เช่าเข้าถึงได้เฉพาะข้อมูลของตนเอง</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Validation &amp; Hardening</strong>
+          <ul>
+            <li>ตรวจ payload และ query ด้วย Zod ทุก endpoint สำคัญ</li>
+            <li>ใช้ helmet, CORS และ rate limit</li>
+            <li>ไม่ commit ไฟล์ .env หรือ secret ลง repository</li>
+            <li>แยกชั้น routes, services และ data access</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Security &amp; API</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">09 · Demo</span>
+      <h2>ลำดับการสาธิต</h2>
+      <div class="content steps">
+        <div class="step"><div class="step-num">1</div><div><strong>ค้นหาห้องว่าง</strong><p>เปิดหน้าแรกและกรองห้องตามประเภทหรือชั้น</p></div></div>
+        <div class="step"><div class="step-num">2</div><div><strong>จองในนามผู้เช่า</strong><p>Login เป็น TENANT แล้วส่งคำขอจองพร้อมวันย้ายเข้า</p></div></div>
+        <div class="step"><div class="step-num">3</div><div><strong>ยืนยันและออกเอกสาร</strong><p>Login เป็น ADMIN เพื่อยืนยันการจองและสร้างสัญญา</p></div></div>
+        <div class="step"><div class="step-num">4</div><div><strong>ชำระเงิน</strong><p>กลับไปที่ TENANT เพื่อดูใบแจ้งหนี้และอัปโหลดสลิป จากนั้นให้ STAFF ตรวจสอบและอนุมัติ</p></div></div>
+        <div class="step"><div class="step-num">5</div><div><strong>แจ้งซ่อมและปิดงาน</strong><p>สร้างรายการแจ้งซ่อม แล้ว Login เป็น STAFF เพื่ออัปเดตสถานะ</p></div></div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Demo Script</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">10 · Status</span>
+      <h2>ผลการตรวจสอบและข้อจำกัด</h2>
+      <div class="content grid-2">
+        <div class="card">
+          <strong>ผ่านการตรวจสอบแล้ว</strong>
+          <ul>
+            <li>Backend TypeScript typecheck และ build</li>
+            <li>Frontend typecheck, ESLint และ production build</li>
+            <li>Migration และ seed บน PostgreSQL 18</li>
+            <li>Smoke test: login → จอง → ยืนยัน → ชำระเงิน → แจ้งซ่อม → ปิดงาน</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>ข้อจำกัดปัจจุบัน</strong>
+          <ul>
+            <li>การชำระเงินใช้การอัปโหลดสลิป ไม่เชื่อมต่อ gateway จริง</li>
+            <li>มี integration tests 77 กรณี แต่ยังไม่มี E2E tests ฝั่ง frontend</li>
+            <li>ต้องตั้งค่า PostgreSQL และ .env ก่อนรัน</li>
+            <li>ข้อมูลตัวอย่างทั้งหมดมาจาก seed script</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Verification &amp; Limitations</strong></div>
+    </section>
+
+    <section class="slide">
+      <span class="eyebrow">11 · Team</span>
+      <h2>การแบ่งหน้าที่ในทีม</h2>
+      <div class="content">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>งานรับผิดชอบ</th>
+              <th>ผู้รับผิดชอบ</th>
+              <th>ขอบเขตงาน</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>UX/UI และ Frontend</td><td>ชื่อสมาชิก</td><td>หน้าเว็บ, components, responsive, theme</td></tr>
+            <tr><td>Backend API</td><td>ชื่อสมาชิก</td><td>routes, services, validation, authentication</td></tr>
+            <tr><td>Database และ Prisma</td><td>ชื่อสมาชิก</td><td>schema, migration, seed, data integrity</td></tr>
+            <tr><td>Testing และ Deployment</td><td>ชื่อสมาชิก</td><td>ตรวจ build, smoke test, เอกสารการใช้งาน</td></tr>
+            <tr><td>Presentation</td><td>ชื่อสมาชิก</td><td>สไลด์, demo script, เตรียม Q&amp;A</td></tr>
+          </tbody>
+        </table>
+        <p class="small muted" style="margin-top: 14px;">แก้ไขชื่อสมาชิกและรายละเอียดการแบ่งงานให้ตรงกับทีมจริงก่อนนำเสนอ</p>
+      </div>
+      <div class="footer"><span>SmartDorm</span><strong>Team Responsibilities</strong></div>
+    </section>
+
+    <section class="slide title-slide">
+      <span class="eyebrow">12 · Wrap-up</span>
+      <h1 style="font-size: 60px;">ขอบคุณ<br />และ Q&amp;A</h1>
+      <p class="lead">SmartDorm พร้อมสำหรับการสาธิตการจอง การออกเอกสาร การชำระเงิน และการแจ้งซ่อมแบบครบวงจร</p>
+      <div class="title-meta">
+        <div class="stat"><strong>Next</strong>เพิ่ม E2E tests ฝั่ง frontend</div>
+        <div class="stat"><strong>Next</strong>แจ้งเตือน Email / LINE</div>
+        <div class="stat"><strong>Next</strong>เชื่อมต่อ payment gateway</div>
+      </div>
+      <p class="small" style="margin-top: 34px; color: #bdf0e6;">ใช้ปุ่มลูกศรซ้าย/ขวาเพื่อเปลี่ยนสไลด์ หรือกด Print เพื่อ export เป็น PDF</p>
+    </section>
+
+    <div class="progress"><span id="progress"></span></div>
+    <div class="nav">
+      <button type="button" id="prev" aria-label="สไลด์ก่อนหน้า">‹</button>
+      <span class="counter" id="counter">1 / 13</span>
+      <button type="button" id="next" aria-label="สไลด์ถัดไป">›</button>
+    </div>
+    <div class="hint">← → เปลี่ยนสไลด์ | F11 สำหรับเต็มจอ</div>
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'))
+    const counter = document.getElementById('counter')
+    const progress = document.getElementById('progress')
+    let index = 0
+
+    function show(next) {
+      index = Math.max(0, Math.min(slides.length - 1, next))
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === index))
+      counter.textContent = `${index + 1} / ${slides.length}`
+      progress.style.width = `${((index + 1) / slides.length) * 100}%`
+    }
+
+    document.getElementById('prev').addEventListener('click', () => show(index - 1))
+    document.getElementById('next').addEventListener('click', () => show(index + 1))
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
+        event.preventDefault()
+        show(index + 1)
+      }
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault()
+        show(index - 1)
+      }
+      if (event.key === 'Home') show(0)
+      if (event.key === 'End') show(slides.length - 1)
+    })
+
+    show(0)
+  </script>
+</body>
+</html>

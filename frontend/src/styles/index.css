@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans Thai", system-ui, sans-serif;
+  --color-ink: #3a281b;     /* ไม้วอลนัทเข้ม */
+  --color-paper: #f7f0e3;   /* ครีมอุ่น */
+  --color-accent: #8b5a2b;  /* ไม้โอ๊ค */
+  --color-warn: #c9821f;
+
+  /* ทับพาเลตเทา (slate) ให้เป็นโทนไม้อุ่นทั้งเว็บ */
+  --color-slate-50: #fbf7f0;
+  --color-slate-100: #f3ebdd;
+  --color-slate-200: #e6dac6;
+  --color-slate-300: #d3c2a8;
+  --color-slate-400: #a8997f;
+  --color-slate-500: #857560;
+  --color-slate-600: #6a5a46;
+  --color-slate-700: #54453a;
+  --color-slate-800: #3e3229;
+  --color-slate-900: #2a211a;
+}
+
+body {
+  @apply bg-paper text-ink font-sans;
+  background-image: repeating-linear-gradient(90deg, rgba(139, 90, 43, 0.035) 0 2px, transparent 2px 22px);
+}
+
+/* ลายไม้ใช้ตกแต่งหัวการ์ดและแบนเนอร์ */
+.wood-grain {
+  background-color: #5a3d28;
+  background-image:
+    repeating-linear-gradient(92deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 10px),
+    repeating-linear-gradient(88deg, rgba(0, 0, 0, 0.1) 0 1px, transparent 1px 15px),
+    linear-gradient(135deg, #7a5435, #4a3120);
+}

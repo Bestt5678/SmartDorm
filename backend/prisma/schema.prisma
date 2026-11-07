@@ -1,0 +1,194 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model RoomType {
+  roomTypeId  Int      @id @default(autoincrement()) @map("room_type_id")
+  typeName    String   @map("type_name") @db.VarChar(50)
+  basePrice   Decimal  @map("base_price") @db.Decimal(10, 2)
+  description String?
+  imageUrls   String[] @default([]) @map("image_urls")
+  amenities   String[] @default([])
+  rooms       Room[]
+
+  @@map("room_type")
+}
+
+model Room {
+  roomId        Int             @id @default(autoincrement()) @map("room_id")
+  roomNumber    String          @unique @map("room_number") @db.VarChar(10)
+  floor         Int
+  roomTypeId    Int             @map("room_type_id")
+  monthlyRate   Decimal         @map("monthly_rate") @db.Decimal(10, 2)
+  status        String          @default("ว่าง") @db.VarChar(20)
+  roomType      RoomType        @relation(fields: [roomTypeId], references: [roomTypeId], onDelete: Restrict, onUpdate: Cascade)
+  bookings      Booking[]
+  utilityMeters UtilityMeter[]
+  repairs       RepairRequest[]
+
+  @@index([roomTypeId])
+  @@index([status])
+  @@map("room")
+}
+
+model Tenant {
+  tenantId  Int      @id @default(autoincrement()) @map("tenant_id")
+  fullName  String   @map("full_name") @db.VarChar(100)
+  // null ได้สำหรับผู้เช่าที่สมัครผ่าน Google/LINE/Facebook (ต้องกรอกก่อนจองห้อง)
+  idCardNo  String?  @unique @map("id_card_no") @db.VarChar(13)
+  phone     String?  @db.VarChar(10)
+  email     String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  bookings  Booking[]
+  account   Account?
+
+  @@map("tenant")
+}
+
+model Booking {
+  bookingId   Int      @id @default(autoincrement()) @map("booking_id")
+  roomId      Int      @map("room_id")
+  tenantId    Int      @map("tenant_id")
+  bookingDate DateTime @default(now()) @map("booking_date") @db.Date
+  moveInDate  DateTime @map("move_in_date") @db.Date
+  status      String   @default("รอดำเนินการ") @db.VarChar(20)
+  room        Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
+  tenant      Tenant   @relation(fields: [tenantId], references: [tenantId], onDelete: Restrict, onUpdate: Cascade)
+  contract    Contract?
+
+  @@index([roomId, status])
+  @@index([tenantId])
+  @@map("booking")
+}
+
+model Contract {
+  contractId Int       @id @default(autoincrement()) @map("contract_id")
+  bookingId  Int       @unique @map("booking_id")
+  startDate  DateTime  @map("start_date") @db.Date
+  endDate    DateTime  @map("end_date") @db.Date
+  deposit    Decimal   @db.Decimal(10, 2)
+  booking    Booking   @relation(fields: [bookingId], references: [bookingId], onDelete: Restrict, onUpdate: Cascade)
+  invoices   Invoice[]
+
+  @@map("contract")
+}
+
+model Staff {
+  staffId  Int             @id @default(autoincrement()) @map("staff_id")
+  fullName String          @map("full_name") @db.VarChar(100)
+  position String          @db.VarChar(50)
+  phone    String?         @db.VarChar(10)
+  repairs  RepairRequest[]
+  account  Account?
+
+  @@map("staff")
+}
+
+model UtilityMeter {
+  meterId      Int      @id @default(autoincrement()) @map("meter_id")
+  roomId       Int      @map("room_id")
+  meterMonth   DateTime @map("meter_month") @db.Date
+  waterUnit    Decimal  @default(0) @map("water_unit") @db.Decimal(10, 2)
+  electricUnit Decimal  @default(0) @map("electric_unit") @db.Decimal(10, 2)
+  room         Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
+  invoices     Invoice[]
+
+  @@unique([roomId, meterMonth], map: "uq_meter_room_month")
+  @@map("utility_meter")
+}
+
+model Invoice {
+  invoiceId      Int           @id @default(autoincrement()) @map("invoice_id")
+  contractId     Int           @map("contract_id")
+  meterId        Int?          @unique @map("meter_id")
+  invoiceDate    DateTime      @default(now()) @map("invoice_date") @db.Date
+  dueDate        DateTime      @map("due_date") @db.Date
+  rentAmount     Decimal       @default(0) @map("rent_amount") @db.Decimal(10, 2)
+  waterAmount    Decimal       @default(0) @map("water_amount") @db.Decimal(10, 2)
+  electricAmount Decimal       @default(0) @map("electric_amount") @db.Decimal(10, 2)
+  depositAmount  Decimal       @default(0) @map("deposit_amount") @db.Decimal(10, 2)
+  totalAmount    Decimal?      @map("total_amount") @db.Decimal(10, 2) @ignore
+  status         String        @default("ค้างชำระ") @db.VarChar(20)
+  invoiceType    String        @default("RENT") @map("invoice_type") @db.VarChar(20)
+  contract       Contract      @relation(fields: [contractId], references: [contractId], onDelete: Restrict, onUpdate: Cascade)
+  meter          UtilityMeter? @relation(fields: [meterId], references: [meterId], onDelete: SetNull, onUpdate: Cascade)
+  payments       Payment[]
+
+  @@index([contractId])
+  @@index([status])
+  @@index([invoiceDate])
+  @@index([dueDate])
+  @@map("invoice")
+}
+
+model Payment {
+  paymentId           Int       @id @default(autoincrement()) @map("payment_id")
+  invoiceId           Int       @map("invoice_id")
+  paymentDate         DateTime  @default(now()) @map("payment_date") @db.Date
+  amount              Decimal   @db.Decimal(10, 2)
+  paymentType         String    @map("payment_type") @db.VarChar(20)
+  status              String    @default("อนุมัติแล้ว") @db.VarChar(20)
+  slipUrl             String?   @map("slip_url") @db.VarChar(255)
+  note                String?   @db.VarChar(500)
+  verifiedByAccountId Int?      @map("verified_by_account_id")
+  verifiedAt          DateTime? @map("verified_at") @db.Timestamp(6)
+  invoice             Invoice   @relation(fields: [invoiceId], references: [invoiceId], onDelete: Restrict, onUpdate: Cascade)
+  verifiedBy          Account?  @relation("PaymentVerifier", fields: [verifiedByAccountId], references: [accountId], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([invoiceId])
+  @@index([status])
+  @@index([paymentDate])
+  @@map("payment")
+}
+
+model RepairRequest {
+  repairId    Int      @id @default(autoincrement()) @map("repair_id")
+  roomId      Int      @map("room_id")
+  staffId     Int?     @map("staff_id")
+  requestDate DateTime @default(now()) @map("request_date") @db.Date
+  description String
+  status      String   @default("รอดำเนินการ") @db.VarChar(20)
+  room        Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
+  staff       Staff?   @relation(fields: [staffId], references: [staffId], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([roomId])
+  @@index([staffId])
+  @@index([status])
+  @@map("repair_request")
+}
+
+model Account {
+  accountId    Int      @id @default(autoincrement()) @map("account_id")
+  // email/passwordHash เป็น null ได้สำหรับบัญชีที่เข้าสู่ระบบผ่าน OAuth เท่านั้น
+  email        String?  @unique @db.VarChar(100)
+  passwordHash String?  @map("password_hash") @db.VarChar(255)
+  role         String   @default("TENANT") @db.VarChar(20)
+  tenantId     Int?     @unique @map("tenant_id")
+  staffId      Int?     @unique @map("staff_id")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  tenant       Tenant?  @relation(fields: [tenantId], references: [tenantId], onDelete: SetNull, onUpdate: Cascade)
+  staff        Staff?   @relation(fields: [staffId], references: [staffId], onDelete: SetNull, onUpdate: Cascade)
+  verifiedPayments Payment[] @relation("PaymentVerifier")
+  oauthIdentities  OAuthIdentity[]
+
+  @@map("account")
+}
+
+model OAuthIdentity {
+  identityId     Int      @id @default(autoincrement()) @map("identity_id")
+  provider       String   @db.VarChar(20)
+  providerUserId String   @map("provider_user_id") @db.VarChar(255)
+  accountId      Int      @map("account_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  account        Account  @relation(fields: [accountId], references: [accountId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([provider, providerUserId], map: "uq_oauth_provider_user")
+  @@index([accountId])
+  @@map("oauth_identity")
+}
