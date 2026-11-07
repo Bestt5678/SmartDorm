@@ -122,18 +122,18 @@ async function main() {
   })
 
   const staff1 = await prisma.staff.create({
-    data: { fullName: 'วิชัย ดูแลดี', position: 'ผู้ดูแลหอพัก', phone: '0891112222' },
+    data: { fullName: 'ดูแลหอพัก หนึ่ง', position: 'ผู้ดูแลหอพัก', phone: '0891112222' },
   })
   const staff2 = await prisma.staff.create({
-    data: { fullName: 'ประเสริฐ ซ่อมเก่ง', position: 'ช่างซ่อมบำรุง', phone: '0893334444' },
+    data: { fullName: 'ช่าง หนึ่ง', position: 'ช่างซ่อมบำรุง', phone: '0893334444' },
   })
   await prisma.staff.create({
-    data: { fullName: 'มาลี สะอาดดี', position: 'แม่บ้าน', phone: '0895556666' },
+    data: { fullName: 'แม่บ้าน หนึ่ง', position: 'แม่บ้าน', phone: '0895556666' },
   })
 
   const tenant1 = await prisma.tenant.create({
     data: {
-      fullName: 'สมชาย ใจดี',
+      fullName: 'เช่า หนึ่ง',
       idCardNo: '1234567890123',
       phone: '0812345678',
       email: 'tenant@smartdorm.local',
@@ -141,27 +141,27 @@ async function main() {
   })
   const tenant2 = await prisma.tenant.create({
     data: {
-      fullName: 'สมหญิง รักเรียน',
+      fullName: 'เช่า สอง',
       idCardNo: '1234567890124',
       phone: '0823456789',
-      email: 'somying@example.com',
+      email: 'tenant2@example.com',
     },
   })
   const tenant3 = await prisma.tenant.create({
     data: {
-      fullName: 'ณัฐพล ตั้งใจ',
+      fullName: 'เช่า สาม',
       idCardNo: '1234567890125',
       phone: '0834567890',
-      email: 'nattapon@example.com',
+      email: 'tenant3@example.com',
     },
   })
 
   await prisma.tenant.create({
     data: {
-      fullName: 'ปวีณา สุขใจ',
+      fullName: 'เช่า สี่',
       idCardNo: '1234567890126',
       phone: '0845678901',
-      email: 'paweena@example.com',
+      email: 'tenant4@example.com',
     },
   })
 
