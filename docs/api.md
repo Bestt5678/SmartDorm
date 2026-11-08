@@ -59,7 +59,7 @@ Content-Type: application/json
 
 {
   "email": "tenant@smartdorm.local",
-  "password": "Tenant@1234",
+  "password": "12345678",
   "role": "TENANT"
 }
 ```

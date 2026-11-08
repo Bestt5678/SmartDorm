@@ -166,9 +166,9 @@ async function main() {
   })
 
   const [adminPassword, staffPassword, tenantPassword] = await Promise.all([
-    bcrypt.hash('Admin@1234', 10),
-    bcrypt.hash('Staff@1234', 10),
-    bcrypt.hash('Tenant@1234', 10),
+    bcrypt.hash('12345678', 10),
+    bcrypt.hash('12345678', 10),
+    bcrypt.hash('12345678', 10),
   ])
 
   await prisma.account.create({
@@ -384,9 +384,9 @@ async function main() {
 
   console.log('Seed complete')
   console.log('Accounts:')
-  console.log('  admin@smartdorm.local / Admin@1234')
-  console.log('  staff@smartdorm.local / Staff@1234')
-  console.log('  tenant@smartdorm.local / Tenant@1234')
+  console.log('  admin@smartdorm.local / 12345678')
+  console.log('  staff@smartdorm.local / 12345678')
+  console.log('  tenant@smartdorm.local / 12345678')
   console.log(
     `Invoices created: ${[depositInvoice1, rentInvoice1, utilityInvoice1, depositInvoice2].length + 1}`,
   )
