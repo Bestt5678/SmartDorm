@@ -25,32 +25,32 @@
   - การยืนยันตัวตนด้วย OTP หรือ e-KYC
 
 ## Slide 4 - User Roles
-- `TENANT`: ค้นหาห้อง จองห้อง ดูใบแจ้งหนี้ ชำระเงิน แจ้งซ่อม
-- `STAFF`: ดูภาพรวม รับงานซ่อม ดูแลการจองและผู้เช่า
-- `ADMIN`: จัดการห้อง ยืนยันการจอง ออกใบแจ้งหนี้ และจัดการเอกสารทั้งหมด
+- TENANT: ค้นหาห้อง จองห้อง ดูใบแจ้งหนี้ ชำระเงิน แจ้งซ่อม
+- STAFF: ดูภาพรวม รับงานซ่อม ดูแลการจองและผู้เช่า
+- ADMIN: จัดการห้อง ยืนยันการจอง ออกใบแจ้งหนี้ และจัดการเอกสารทั้งหมด
 
 ## Slide 5 - System Architecture
 - Frontend: React + TypeScript + Zod + Tailwind CSS + Axios (build ด้วย Vite, หน้าจัดการข้อมูลสร้างจาก config ของแต่ละตาราง)
 - Backend: Node.js + Express + TypeScript + Zod + Prisma
 - Database: PostgreSQL
 - Auth: JWT + bcrypt
-- API: REST (`/api/...`)
+- API: REST (/api/...)
 - Diagram suggestion: Browser -> React SPA -> Express API -> Prisma -> PostgreSQL
 - หมายเหตุ: แสดงลำดับการเรียก API และการตรวจสอบ role ใน middleware
 
 ## Slide 6 - Database Design
-- ตารางหลัก: `room_type`, `room`, `tenant`, `booking`, `contract`, `invoice`, `payment`
-- ตารางสนับสนุน: `staff`, `utility_meter`, `repair_request`, `account`
+- ตารางหลัก: room_type, room, tenant, booking, contract, invoice, payment
+- ตารางสนับสนุน: staff, utility_meter, repair_request, account
 - ความสัมพันธ์สำคัญ
-  - `room_type` 1:N `room`
-  - `tenant` 1:N `booking`
-  - `booking` 1:1 `contract`
-  - `contract` 1:N `invoice`
-  - `invoice` 1:N `payment`
-  - `room` 1:N `utility_meter` และ `repair_request`
+  - room_type 1:N room
+  - tenant 1:N booking
+  - booking 1:1 contract
+  - contract 1:N invoice
+  - invoice 1:N payment
+  - room 1:N utility_meter และ repair_request
 - จุดออกแบบเพิ่มเติม
-  - เพิ่ม `account` สำหรับ login
-  - เพิ่ม `deposit_amount`, `invoice_type` และรูป/สิ่งอำนวยความสะดวกของประเภทห้อง
+  - เพิ่ม account สำหรับ login
+  - เพิ่ม deposit_amount, invoice_type และรูป/สิ่งอำนวยความสะดวกของประเภทห้อง
   - ใช้ partial unique index ป้องกันห้องถูกจองซ้ำขณะมี booking ที่ยัง active
 
 ## Slide 7 - Key Business Flows
@@ -58,7 +58,7 @@
 - Flow 2: ADMIN ยืนยันการจอง -> สร้างสัญญา -> สร้างใบแจ้งหนี้เงินมัดจำ
 - Flow 3: ผู้เช่าดูใบแจ้งหนี้ -> อัปโหลดสลิป -> STAFF/ADMIN ตรวจสอบและอนุมัติ/ปฏิเสธ -> สถานะเปลี่ยนเป็นชำระบางส่วน/ชำระแล้ว
 - Flow 4: ผู้เช่าแจ้งซ่อม -> STAFF รับงาน/อัปเดตสถานะ -> เสร็จสิ้น
-- แสดง state diagram ของ `booking`, `invoice`, `repair_request`
+- แสดง state diagram ของ booking, invoice, repair_request
 
 ## Slide 8 - Frontend Screens
 - หน้าแรก: hero, ค้นหาห้อง, ประเภทห้อง, ห้องว่างแนะนำ
@@ -73,7 +73,7 @@
 - Role-based authorization ด้วย middleware
 - Password hash ด้วย bcrypt, token ด้วย JWT
 - ความปลอดภัยเพิ่มเติม: helmet, CORS, rate limit
-- หมายเหตุ: อย่า commit `.env` หรือ secret ลง repository
+- หมายเหตุ: อย่า commit .env หรือ secret ลง repository
 
 ## Slide 10 - Demo Script
 1. เปิดหน้าแรกและค้นหาห้องว่าง
@@ -86,10 +86,10 @@
 ## Slide 11 - Testing and Limitations
 - ผ่านการตรวจ TypeScript และ build ทั้ง frontend/backend
 - ผ่าน ESLint ฝั่ง frontend
-- Integration tests ของ API (Vitest + Supertest) 77 กรณี ครอบคลุมทุกกลุ่ม endpoint รันบนฐานข้อมูล `_test` แยก และรันอัตโนมัติใน GitHub Actions
+- Integration tests ของ API (Vitest + Supertest) 77 กรณี ครอบคลุมทุกกลุ่ม endpoint รันบนฐานข้อมูล \_test แยก และรันอัตโนมัติใน GitHub Actions
 - ข้อจำกัด
   - การชำระเงินเป็นการอัปโหลดสลิปและตรวจสอบด้วยคน ไม่มี payment gateway จริง
-  - ต้องตั้งค่า PostgreSQL และ `.env` ก่อนรัน
+  - ต้องตั้งค่า PostgreSQL และ .env ก่อนรัน
   - ข้อมูลตัวอย่างมาจาก seed script
 
 ## Slide 12 - Team Responsibilities
