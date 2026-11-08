@@ -41,7 +41,7 @@
 ## การรันเทสต์ (backend)
 
 ```powershell
-Copy-Item backend/.env.test.example backend/.env.test
-# แก้ไข DATABASE_URL ใน .env.test ให้ชี้ไปที่ฐานข้อมูลที่ลงท้ายด้วย _test
+Copy-Item backend/.env.example backend/.env.test
+# กรอกค่าใน .env.test โดย DATABASE_URL ต้องชี้ไปที่ฐานข้อมูลที่ลงท้ายด้วย _test
 npm run test --prefix backend
 ```

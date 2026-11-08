@@ -38,7 +38,11 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: cp .env.test.example .env.test
       - run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartdorm_test?schema=public
+          JWT_SECRET: test-secret-change-me-at-least-32-characters
+          JWT_EXPIRES_IN: 1h
+          UPLOAD_DIR: uploads-test
       - run: npm run typecheck
       - run: npm run build
