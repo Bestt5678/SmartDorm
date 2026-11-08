@@ -38,10 +38,4 @@
 | npm run db:migrate | สร้าง migration ใหม่ระหว่างพัฒนา |
 | npm run db:seed | ล้างข้อมูลทั้งหมด แล้วใส่ข้อมูลตั้งต้น (ห้อง พนักงาน ผู้เช่า บัญชีทดลอง) |
 
-## การรันเทสต์ (backend)
 
-```powershell
-Copy-Item backend/.env.example backend/.env.test
-# กรอกค่าใน .env.test โดย DATABASE_URL ต้องชี้ไปที่ฐานข้อมูลที่ลงท้ายด้วย _test
-npm run test --prefix backend
-```
