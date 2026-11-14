@@ -1,84 +1,80 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, post } from "../../api/client";
-import { LoginResponseSchema, UserSchema, type LoginForm, type RegisterForm, type User } from "./schema";
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { api } from '../../api/apiClient'
+import type { Role, User } from '../../userTypes'
 
 type AuthValue = {
-  user: User | null;
-  login: (form: LoginForm) => Promise<void>;
-  register: (form: RegisterForm) => Promise<void>;
-  refresh: () => Promise<void>;
-  logout: () => void;
-};
+  user: User | null
+  login: (email: string, password: string, role: Role) => Promise<void>
+  register: (data: any) => Promise<void>
+  refresh: () => Promise<void>
+  logout: () => void
+}
 
-const AuthContext = createContext<AuthValue | null>(null);
+const AuthContext = createContext<AuthValue | null>(null)
 
 function loadUser(): User | null {
   try {
-    const raw = localStorage.getItem("user");
-    const parsed = raw ? UserSchema.safeParse(JSON.parse(raw)) : null;
-    return parsed?.success && localStorage.getItem("token") ? parsed.data : null;
+    const token = localStorage.getItem('token')
+    const user = localStorage.getItem('user')
+    if (token && user) return JSON.parse(user)
   } catch {
-    return null;
+    // ข้อมูลใน localStorage เสีย ให้ถือว่ายังไม่ได้ login
   }
-}
-
-function saveSession(token: string, user: User) {
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user));
+  return null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(loadUser);
+  const [user, setUser] = useState<User | null>(loadUser)
 
-  const login = useCallback(async (form: LoginForm) => {
-    const res = await post("/auth/login", form, LoginResponseSchema);
-    saveSession(res.token, res.user);
-    setUser(res.user);
-  }, []);
+  function saveLogin(token: string, user: User) {
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    setUser(user)
+  }
 
-  const register = useCallback(async (form: RegisterForm) => {
-    const body = {
-      full_name: form.full_name,
-      id_card_no: form.id_card_no,
-      phone: form.phone || undefined,
-      email: form.email,
-      password: form.password,
-    };
-    const res = await post("/auth/register", body, LoginResponseSchema);
-    saveSession(res.token, res.user);
-    setUser(res.user);
-  }, []);
+  async function login(email: string, password: string, role: Role) {
+    const res = await api.post('/auth/login', { email, password, role })
+    saveLogin(res.data.token, res.data.user)
+  }
 
-  // โหลดข้อมูลผู้ใช้ใหม่ (เช่น หลังแก้ข้อมูลส่วนตัว)
-  const refresh = useCallback(async () => {
-    const { data } = await api.get("/auth/me");
-    const u = UserSchema.parse(data);
-    localStorage.setItem("user", JSON.stringify(u));
-    setUser(u);
-  }, []);
+  async function register(data: any) {
+    const res = await api.post('/auth/register', data)
+    saveLogin(res.data.token, res.data.user)
+  }
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-  }, []);
+  async function refresh() {
+    const res = await api.get('/auth/me')
+    localStorage.setItem('user', JSON.stringify(res.data))
+    setUser(res.data)
+  }
 
-  // Axios interceptor ยิง event นี้เมื่อ token หมดอายุ (401)
+  function logout() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+  }
+
+  // apiClient.ts ส่ง event นี้มาเมื่อ token หมดอายุ
   useEffect(() => {
-    window.addEventListener("auth:logout", logout);
-    return () => window.removeEventListener("auth:logout", logout);
-  }, [logout]);
+    function onLogout() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      setUser(null)
+    }
+    window.addEventListener('auth:logout', onLogout)
+    return () => window.removeEventListener('auth:logout', onLogout)
+  }, [])
 
-  const value = useMemo(
-    () => ({ user, login, register, refresh, logout }),
-    [user, login, register, refresh, logout]
-  );
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, register, refresh, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- hook คู่กับ provider
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth ต้องอยู่ภายใน AuthProvider");
-  return ctx;
+  const value = useContext(AuthContext)
+  if (!value) throw new Error('useAuth ต้องอยู่ใน AuthProvider')
+  return value
 }

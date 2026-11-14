@@ -1,44 +1,46 @@
-import { useState } from "react";
-import { z } from "zod";
-import { api, errorMessage } from "../../api/client";
-import { Button, Field, inputCls } from "../../components/ui";
-import { useAuth } from "../auth/AuthContext";
+import { useState } from 'react'
+import { api, errorMessage } from '../../api/apiClient'
+import { Button, Field, inputCls, Message } from '../../components/SharedUI'
+import { useAuth } from '../auth/AuthContext'
 
-const ProfileSchema = z.object({
-  full_name: z.string().trim().min(2, "กรอกชื่ออย่างน้อย 2 ตัวอักษร").max(100),
-  id_card_no: z.string().refine((v) => v === "" || /^\d{13}$/.test(v), "เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก"),
-  phone: z.string().trim().refine((v) => v === "" || /^\d{9,10}$/.test(v), "เบอร์โทรต้องเป็นตัวเลข 9-10 หลัก"),
-});
-
-/** ข้อมูลส่วนตัวของผู้เช่า */
 export default function ProfilePage() {
-  const { user, refresh } = useAuth();
-  const [form, setForm] = useState({ full_name: user?.name ?? "", id_card_no: "", phone: user?.phone ?? "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { user, refresh } = useAuth()
+  const [fullName, setFullName] = useState(user?.name || '')
+  const [idCardNo, setIdCardNo] = useState('')
+  const [phone, setPhone] = useState(user?.phone || '')
+  const [errors, setErrors] = useState<any>({})
+  const [message, setMessage] = useState('')
+  const [isError, setIsError] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg(null);
-    const parsed = ProfileSchema.safeParse(form);
-    if (!parsed.success) {
-      const f = z.flattenError(parsed.error).fieldErrors as Record<string, string[] | undefined>;
-      return setErrors(Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v?.[0] ?? ""])));
-    }
-    setErrors({});
-    setSaving(true);
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setMessage('')
+
+    const newErrors: any = {}
+    if (fullName.trim().length < 2) newErrors.full_name = 'กรอกชื่ออย่างน้อย 2 ตัวอักษร'
+    if (idCardNo !== '' && !/^\d{13}$/.test(idCardNo))
+      newErrors.id_card_no = 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก'
+    if (phone !== '' && !/^\d{9,10}$/.test(phone))
+      newErrors.phone = 'เบอร์โทรต้องเป็นตัวเลข 9-10 หลัก'
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) return
+
+    const data: any = { full_name: fullName.trim(), phone: phone }
+    if (idCardNo !== '') data.id_card_no = idCardNo
+
+    setSaving(true)
     try {
-      const body = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== ""));
-      await api.patch("/auth/me", body);
-      await refresh();
-      setForm((f) => ({ ...f, id_card_no: "" }));
-      setMsg({ text: "บันทึกข้อมูลแล้ว" });
+      await api.patch('/auth/me', data)
+      await refresh()
+      setIdCardNo('')
+      setMessage('บันทึกข้อมูลแล้ว')
+      setIsError(false)
     } catch (err) {
-      setMsg({ text: errorMessage(err), error: true });
-    } finally {
-      setSaving(false);
+      setMessage(errorMessage(err))
+      setIsError(true)
     }
+    setSaving(false)
   }
 
   return (
@@ -46,28 +48,36 @@ export default function ProfilePage() {
       <h2 className="text-lg font-semibold">ข้อมูลส่วนตัว</h2>
       <p className="mb-4 text-sm text-slate-500">อีเมล: {user?.email}</p>
 
-      <form onSubmit={submit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+      >
         <Field label="ชื่อ-นามสกุล" error={errors.full_name}>
-          <input className={inputCls} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+          <input
+            className={inputCls}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
         </Field>
-        <Field
-          label="เลขบัตรประชาชน (กรอกเฉพาะเมื่อต้องการแก้ไข)"
-          error={errors.id_card_no}
-        >
-          <input className={inputCls} inputMode="numeric" value={form.id_card_no}
-            onChange={(e) => setForm({ ...form, id_card_no: e.target.value })} />
+        <Field label="เลขบัตรประชาชน (กรอกเฉพาะเมื่อต้องการแก้ไข)" error={errors.id_card_no}>
+          <input
+            className={inputCls}
+            inputMode="numeric"
+            value={idCardNo}
+            onChange={(e) => setIdCardNo(e.target.value)}
+          />
         </Field>
         <Field label="เบอร์โทร" error={errors.phone}>
-          <input className={inputCls} type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <input
+            className={inputCls}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </Field>
-        {msg && (
-          <p role={msg.error ? "alert" : "status"}
-            className={`rounded-lg p-3 text-sm ${msg.error ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>
-            {msg.text}
-          </p>
-        )}
-        <Button disabled={saving}>{saving ? "กำลังบันทึก…" : "บันทึก"}</Button>
+        <Message text={message} error={isError} />
+        <Button disabled={saving}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</Button>
       </form>
     </section>
-  );
+  )
 }

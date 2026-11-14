@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeEach } from 'vitest'
 import { prisma } from '../src/lib/prisma'
-import { uploadDir } from '../src/lib/upload'
-import { assertTestDatabase, truncateAll } from './helpers/db'
+import { uploadDir } from '../src/lib/slipUpload'
+import { assertTestDatabase, truncateAll } from './helpers/testDatabase'
 
 assertTestDatabase()
 

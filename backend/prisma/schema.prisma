@@ -9,170 +9,170 @@ datasource db {
 }
 
 model RoomType {
-  roomTypeId  Int      @id @default(autoincrement()) @map("room_type_id")
-  typeName    String   @map("type_name") @db.VarChar(50)
-  basePrice   Decimal  @map("base_price") @db.Decimal(10, 2)
-  description String?
-  imageUrls   String[] @default([]) @map("image_urls")
-  amenities   String[] @default([])
-  rooms       Room[]
+  room_type_id Int      @id @default(autoincrement())
+  type_name    String   @db.VarChar(50)
+  base_price   Decimal  @db.Decimal(10, 2)
+  description  String?
+  image_urls   String[] @default([])
+  amenities    String[] @default([])
+  rooms        Room[]
 
   @@map("room_type")
 }
 
 model Room {
-  roomId        Int             @id @default(autoincrement()) @map("room_id")
-  roomNumber    String          @unique @map("room_number") @db.VarChar(10)
-  floor         Int
-  roomTypeId    Int             @map("room_type_id")
-  monthlyRate   Decimal         @map("monthly_rate") @db.Decimal(10, 2)
-  status        String          @default("ว่าง") @db.VarChar(20)
-  roomType      RoomType        @relation(fields: [roomTypeId], references: [roomTypeId], onDelete: Restrict, onUpdate: Cascade)
-  bookings      Booking[]
-  utilityMeters UtilityMeter[]
-  repairs       RepairRequest[]
+  room_id        Int             @id @default(autoincrement())
+  room_number    String          @unique @db.VarChar(10)
+  floor          Int
+  room_type_id   Int
+  monthly_rate   Decimal         @db.Decimal(10, 2)
+  status         String          @default("ว่าง") @db.VarChar(20)
+  room_type      RoomType        @relation(fields: [room_type_id], references: [room_type_id], onDelete: Restrict, onUpdate: Cascade)
+  bookings       Booking[]
+  utility_meters UtilityMeter[]
+  repairs        RepairRequest[]
 
-  @@index([roomTypeId])
+  @@index([room_type_id])
   @@index([status])
   @@map("room")
 }
 
 model Tenant {
-  tenantId  Int      @id @default(autoincrement()) @map("tenant_id")
-  fullName  String   @map("full_name") @db.VarChar(100)
-  idCardNo  String   @unique @map("id_card_no") @db.VarChar(13)
-  phone     String?  @db.VarChar(10)
-  email     String?  @db.VarChar(100)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  bookings  Booking[]
-  account   Account?
+  tenant_id  Int       @id @default(autoincrement())
+  full_name  String    @db.VarChar(100)
+  id_card_no String    @unique @db.VarChar(13)
+  phone      String?   @db.VarChar(10)
+  email      String?   @db.VarChar(100)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  bookings   Booking[]
+  account    Account?
 
   @@map("tenant")
 }
 
 model Booking {
-  bookingId   Int      @id @default(autoincrement()) @map("booking_id")
-  roomId      Int      @map("room_id")
-  tenantId    Int      @map("tenant_id")
-  bookingDate DateTime @default(now()) @map("booking_date") @db.Date
-  moveInDate  DateTime @map("move_in_date") @db.Date
-  status      String   @default("รอดำเนินการ") @db.VarChar(20)
-  room        Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
-  tenant      Tenant   @relation(fields: [tenantId], references: [tenantId], onDelete: Restrict, onUpdate: Cascade)
-  contract    Contract?
+  booking_id   Int       @id @default(autoincrement())
+  room_id      Int
+  tenant_id    Int
+  booking_date DateTime  @default(now()) @db.Date
+  move_in_date DateTime  @db.Date
+  status       String    @default("รอดำเนินการ") @db.VarChar(20)
+  room         Room      @relation(fields: [room_id], references: [room_id], onDelete: Restrict, onUpdate: Cascade)
+  tenant       Tenant    @relation(fields: [tenant_id], references: [tenant_id], onDelete: Restrict, onUpdate: Cascade)
+  contract     Contract?
 
-  @@index([roomId, status])
-  @@index([tenantId])
+  @@index([room_id, status])
+  @@index([tenant_id])
   @@map("booking")
 }
 
 model Contract {
-  contractId Int       @id @default(autoincrement()) @map("contract_id")
-  bookingId  Int       @unique @map("booking_id")
-  startDate  DateTime  @map("start_date") @db.Date
-  endDate    DateTime  @map("end_date") @db.Date
-  deposit    Decimal   @db.Decimal(10, 2)
-  booking    Booking   @relation(fields: [bookingId], references: [bookingId], onDelete: Restrict, onUpdate: Cascade)
-  invoices   Invoice[]
+  contract_id Int       @id @default(autoincrement())
+  booking_id  Int       @unique
+  start_date  DateTime  @db.Date
+  end_date    DateTime  @db.Date
+  deposit     Decimal   @db.Decimal(10, 2)
+  booking     Booking   @relation(fields: [booking_id], references: [booking_id], onDelete: Restrict, onUpdate: Cascade)
+  invoices    Invoice[]
 
   @@map("contract")
 }
 
 model Staff {
-  staffId  Int             @id @default(autoincrement()) @map("staff_id")
-  fullName String          @map("full_name") @db.VarChar(100)
-  position String          @db.VarChar(50)
-  phone    String?         @db.VarChar(10)
-  repairs  RepairRequest[]
-  account  Account?
+  staff_id  Int             @id @default(autoincrement())
+  full_name String          @db.VarChar(100)
+  position  String          @db.VarChar(50)
+  phone     String?         @db.VarChar(10)
+  repairs   RepairRequest[]
+  account   Account?
 
   @@map("staff")
 }
 
 model UtilityMeter {
-  meterId      Int      @id @default(autoincrement()) @map("meter_id")
-  roomId       Int      @map("room_id")
-  meterMonth   DateTime @map("meter_month") @db.Date
-  waterUnit    Decimal  @default(0) @map("water_unit") @db.Decimal(10, 2)
-  electricUnit Decimal  @default(0) @map("electric_unit") @db.Decimal(10, 2)
-  room         Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
-  invoices     Invoice[]
+  meter_id      Int       @id @default(autoincrement())
+  room_id       Int
+  meter_month   DateTime  @db.Date
+  water_unit    Decimal   @default(0) @db.Decimal(10, 2)
+  electric_unit Decimal   @default(0) @db.Decimal(10, 2)
+  room          Room      @relation(fields: [room_id], references: [room_id], onDelete: Restrict, onUpdate: Cascade)
+  invoices      Invoice[]
 
-  @@unique([roomId, meterMonth], map: "uq_meter_room_month")
+  @@unique([room_id, meter_month], map: "uq_meter_room_month")
   @@map("utility_meter")
 }
 
 model Invoice {
-  invoiceId      Int           @id @default(autoincrement()) @map("invoice_id")
-  contractId     Int           @map("contract_id")
-  meterId        Int?          @unique @map("meter_id")
-  invoiceDate    DateTime      @default(now()) @map("invoice_date") @db.Date
-  dueDate        DateTime      @map("due_date") @db.Date
-  rentAmount     Decimal       @default(0) @map("rent_amount") @db.Decimal(10, 2)
-  waterAmount    Decimal       @default(0) @map("water_amount") @db.Decimal(10, 2)
-  electricAmount Decimal       @default(0) @map("electric_amount") @db.Decimal(10, 2)
-  depositAmount  Decimal       @default(0) @map("deposit_amount") @db.Decimal(10, 2)
-  totalAmount    Decimal?      @map("total_amount") @db.Decimal(10, 2) @ignore
-  status         String        @default("ค้างชำระ") @db.VarChar(20)
-  invoiceType    String        @default("RENT") @map("invoice_type") @db.VarChar(20)
-  contract       Contract      @relation(fields: [contractId], references: [contractId], onDelete: Restrict, onUpdate: Cascade)
-  meter          UtilityMeter? @relation(fields: [meterId], references: [meterId], onDelete: SetNull, onUpdate: Cascade)
-  payments       Payment[]
+  invoice_id      Int           @id @default(autoincrement())
+  contract_id     Int
+  meter_id        Int?          @unique
+  invoice_date    DateTime      @default(now()) @db.Date
+  due_date        DateTime      @db.Date
+  rent_amount     Decimal       @default(0) @db.Decimal(10, 2)
+  water_amount    Decimal       @default(0) @db.Decimal(10, 2)
+  electric_amount Decimal       @default(0) @db.Decimal(10, 2)
+  deposit_amount  Decimal       @default(0) @db.Decimal(10, 2)
+  total_amount    Decimal?      @ignore @db.Decimal(10, 2)
+  status          String        @default("ค้างชำระ") @db.VarChar(20)
+  invoice_type    String        @default("RENT") @db.VarChar(20)
+  contract        Contract      @relation(fields: [contract_id], references: [contract_id], onDelete: Restrict, onUpdate: Cascade)
+  meter           UtilityMeter? @relation(fields: [meter_id], references: [meter_id], onDelete: SetNull, onUpdate: Cascade)
+  payments        Payment[]
 
-  @@index([contractId])
+  @@index([contract_id])
   @@index([status])
-  @@index([invoiceDate])
-  @@index([dueDate])
+  @@index([invoice_date])
+  @@index([due_date])
   @@map("invoice")
 }
 
 model Payment {
-  paymentId           Int       @id @default(autoincrement()) @map("payment_id")
-  invoiceId           Int       @map("invoice_id")
-  paymentDate         DateTime  @default(now()) @map("payment_date") @db.Date
-  amount              Decimal   @db.Decimal(10, 2)
-  paymentType         String    @map("payment_type") @db.VarChar(20)
-  status              String    @default("อนุมัติแล้ว") @db.VarChar(20)
-  slipUrl             String?   @map("slip_url") @db.VarChar(255)
-  note                String?   @db.VarChar(500)
-  verifiedByAccountId Int?      @map("verified_by_account_id")
-  verifiedAt          DateTime? @map("verified_at") @db.Timestamp(6)
-  invoice             Invoice   @relation(fields: [invoiceId], references: [invoiceId], onDelete: Restrict, onUpdate: Cascade)
-  verifiedBy          Account?  @relation("PaymentVerifier", fields: [verifiedByAccountId], references: [accountId], onDelete: SetNull, onUpdate: Cascade)
+  payment_id             Int       @id @default(autoincrement())
+  invoice_id             Int
+  payment_date           DateTime  @default(now()) @db.Date
+  amount                 Decimal   @db.Decimal(10, 2)
+  payment_type           String    @db.VarChar(20)
+  status                 String    @default("อนุมัติแล้ว") @db.VarChar(20)
+  slip_url               String?   @db.VarChar(255)
+  note                   String?   @db.VarChar(500)
+  verified_by_account_id Int?
+  verified_at            DateTime? @db.Timestamp(6)
+  invoice                Invoice   @relation(fields: [invoice_id], references: [invoice_id], onDelete: Restrict, onUpdate: Cascade)
+  verified_by            Account?  @relation("PaymentVerifier", fields: [verified_by_account_id], references: [account_id], onDelete: SetNull, onUpdate: Cascade)
 
-  @@index([invoiceId])
+  @@index([invoice_id])
   @@index([status])
-  @@index([paymentDate])
+  @@index([payment_date])
   @@map("payment")
 }
 
 model RepairRequest {
-  repairId    Int      @id @default(autoincrement()) @map("repair_id")
-  roomId      Int      @map("room_id")
-  staffId     Int?     @map("staff_id")
-  requestDate DateTime @default(now()) @map("request_date") @db.Date
-  description String
-  status      String   @default("รอดำเนินการ") @db.VarChar(20)
-  room        Room     @relation(fields: [roomId], references: [roomId], onDelete: Restrict, onUpdate: Cascade)
-  staff       Staff?   @relation(fields: [staffId], references: [staffId], onDelete: SetNull, onUpdate: Cascade)
+  repair_id    Int      @id @default(autoincrement())
+  room_id      Int
+  staff_id     Int?
+  request_date DateTime @default(now()) @db.Date
+  description  String
+  status       String   @default("รอดำเนินการ") @db.VarChar(20)
+  room         Room     @relation(fields: [room_id], references: [room_id], onDelete: Restrict, onUpdate: Cascade)
+  staff        Staff?   @relation(fields: [staff_id], references: [staff_id], onDelete: SetNull, onUpdate: Cascade)
 
-  @@index([roomId])
-  @@index([staffId])
+  @@index([room_id])
+  @@index([staff_id])
   @@index([status])
   @@map("repair_request")
 }
 
 model Account {
-  accountId    Int      @id @default(autoincrement()) @map("account_id")
-  email        String   @unique @db.VarChar(100)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  role         String   @default("TENANT") @db.VarChar(20)
-  tenantId     Int?     @unique @map("tenant_id")
-  staffId      Int?     @unique @map("staff_id")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  tenant       Tenant?  @relation(fields: [tenantId], references: [tenantId], onDelete: SetNull, onUpdate: Cascade)
-  staff        Staff?   @relation(fields: [staffId], references: [staffId], onDelete: SetNull, onUpdate: Cascade)
-  verifiedPayments Payment[] @relation("PaymentVerifier")
+  account_id        Int       @id @default(autoincrement())
+  email             String    @unique @db.VarChar(100)
+  password_hash     String    @db.VarChar(255)
+  role              String    @default("TENANT") @db.VarChar(20)
+  tenant_id         Int?      @unique
+  staff_id          Int?      @unique
+  created_at        DateTime  @default(now()) @db.Timestamp(6)
+  tenant            Tenant?   @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull, onUpdate: Cascade)
+  staff             Staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: SetNull, onUpdate: Cascade)
+  verified_payments Payment[] @relation("PaymentVerifier")
 
   @@map("account")
 }

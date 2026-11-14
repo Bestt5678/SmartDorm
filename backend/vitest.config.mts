@@ -1,16 +1,11 @@
 import { defineConfig } from 'vitest/config'
 
+// ต้องมีไฟล์ .env.test ที่ DATABASE_URL ชี้ไปฐานข้อมูลที่ลงท้ายด้วย _test และ migrate แล้ว
 export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
-    environment: 'node',
     fileParallelism: false,
-    globalSetup: ['./tests/global-setup.ts'],
     setupFiles: ['./tests/setup.ts'],
-    testTimeout: 30000,
-    hookTimeout: 60000,
-    env: {
-      NODE_ENV: 'test',
-    },
+    env: { NODE_ENV: 'test' },
   },
 })

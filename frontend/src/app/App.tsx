@@ -1,94 +1,108 @@
-import { useState } from "react";
-import { useAuth } from "../features/auth/AuthContext";
-import LoginModal from "../features/auth/LoginModal";
-import { ROLE_LABEL } from "../features/auth/schema";
-import HomePage from "../features/home/HomePage";
-import { CONTACT, telHref } from "../config/site";
-import ResourcePage from "../components/ResourcePage";
-import { entriesFor, type Entry } from "../features/registry";
+import { useState } from 'react'
+import ContactBar from '../components/layout/ContactBar'
+import Footer from '../components/layout/Footer'
+import Header from '../components/layout/Header'
+import { useAuth } from '../features/auth/AuthContext'
+import AuthModal from '../features/auth/AuthModal'
+import DashboardPage from '../features/dashboard/DashboardPage'
+import HomePage from '../features/home/HomePage'
+import ProfilePage from '../features/profile/ProfilePage'
+import BookingsPage from '../pages/BookingsPage'
+import ContractsPage from '../pages/ContractsPage'
+import InvoicesPage from '../pages/InvoicesPage'
+import MetersPage from '../pages/MetersPage'
+import PaymentsPage from '../pages/PaymentsPage'
+import RepairsPage from '../pages/RepairsPage'
+import RoomTypesPage from '../pages/RoomTypesPage'
+import RoomsPage from '../pages/RoomsPage'
+import StaffPage from '../pages/StaffPage'
+import TenantsPage from '../pages/TenantsPage'
 
-function Page({ entry }: { entry: Entry }) {
-  const { user } = useAuth();
-  if ("component" in entry) {
-    const Component = entry.component;
-    return <Component />;
+const MENU = [
+  { key: 'dashboard', title: 'ภาพรวม', roles: ['STAFF', 'ADMIN'] },
+  { key: 'rooms', title: 'ห้องพัก', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'room-types', title: 'ประเภทห้อง', roles: ['STAFF', 'ADMIN'] },
+  { key: 'tenants', title: 'ผู้เช่า', roles: ['STAFF', 'ADMIN'] },
+  { key: 'bookings', title: 'การจอง', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'contracts', title: 'สัญญาเช่า', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'meters', title: 'มิเตอร์น้ำ-ไฟ', roles: ['STAFF', 'ADMIN'] },
+  { key: 'invoices', title: 'ใบแจ้งหนี้', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'payments', title: 'การชำระเงิน', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'repairs', title: 'แจ้งซ่อม', roles: ['TENANT', 'STAFF', 'ADMIN'] },
+  { key: 'staff', title: 'พนักงาน', roles: ['ADMIN'] },
+  { key: 'profile', title: 'ข้อมูลส่วนตัว', roles: ['TENANT'] },
+]
+
+function showPage(key: string) {
+  switch (key) {
+    case 'dashboard':
+      return <DashboardPage />
+    case 'rooms':
+      return <RoomsPage />
+    case 'room-types':
+      return <RoomTypesPage />
+    case 'tenants':
+      return <TenantsPage />
+    case 'bookings':
+      return <BookingsPage />
+    case 'contracts':
+      return <ContractsPage />
+    case 'meters':
+      return <MetersPage />
+    case 'invoices':
+      return <InvoicesPage />
+    case 'payments':
+      return <PaymentsPage />
+    case 'repairs':
+      return <RepairsPage />
+    case 'staff':
+      return <StaffPage />
+    case 'profile':
+      return <ProfilePage />
+    default:
+      return null
   }
-  const mode = user ? entry.access[user.role] : undefined;
-  return mode ? <ResourcePage key={entry.key} config={entry.config} mode={mode} /> : null;
 }
 
 export default function App() {
-  const { user, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-  const [active, setActive] = useState<string | null>(null);
+  const { user, logout } = useAuth()
+  const [showLogin, setShowLogin] = useState(false)
+  const [page, setPage] = useState('')
 
-  const visible = user ? entriesFor(user.role) : [];
-  const current = visible.find((e) => e.key === active) ?? visible[0];
+  const menu = user ? MENU.filter((item) => item.roles.includes(user.role)) : []
 
-  function signOut() {
-    logout();
-    setActive(null);
+  let currentPage = page
+  if (!menu.some((item) => item.key === page) && menu.length > 0) {
+    currentPage = menu[0]!.key
+  }
+
+  function handleLogout() {
+    logout()
+    setPage('')
   }
 
   return (
     <div className="min-h-screen">
-      <div className="bg-ink px-4 py-1.5 text-center text-xs text-white/85">
-        ติดต่อ:{" "}
-        <a href={telHref} className="font-semibold text-amber-200 underline">{CONTACT.phone}</a>
-      </div>
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 p-4">
-          <h1 className="flex items-center gap-2 text-xl font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white">S</span>
-            SmartDorm
-          </h1>
-
-          {/* มุมขวาบน: ปุ่มเข้าสู่ระบบ / ข้อมูลผู้ใช้ */}
-          {user ? (
-            <div className="flex items-center gap-3 text-sm">
-              <span className="hidden sm:inline">
-                {user.name}
-                <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
-                  {ROLE_LABEL[user.role]}
-                </span>
-              </span>
-              <button onClick={signOut}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium hover:bg-slate-100">
-                ออกจากระบบ
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setShowLogin(true)}
-              className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white hover:brightness-110">
-              เข้าสู่ระบบ / สมัครสมาชิก
-            </button>
-          )}
-        </div>
-
-        {user && (
-          <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-3" aria-label="เมนูหลัก">
-            {visible.map((e) => (
-              <button key={e.key} onClick={() => setActive(e.key)}
-                aria-current={current?.key === e.key ? "page" : undefined}
-                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
-                  current?.key === e.key ? "bg-accent text-white" : "text-slate-600 hover:bg-slate-100"}`}>
-                {e.title}
-              </button>
-            ))}
-          </nav>
-        )}
-      </header>
+      <ContactBar />
+      <Header
+        menu={menu}
+        currentPage={currentPage}
+        onSelect={setPage}
+        onLogin={() => setShowLogin(true)}
+        onLogout={handleLogout}
+      />
 
       <main className="mx-auto max-w-6xl p-4">
-        {user && current ? <Page key={current.key} entry={current} /> : <HomePage onLogin={() => setShowLogin(true)} />}
+        {user ? (
+          <div key={currentPage}>{showPage(currentPage)}</div>
+        ) : (
+          <HomePage onLogin={() => setShowLogin(true)} />
+        )}
       </main>
 
-      <footer className="mt-12 border-t border-slate-200 p-6 text-center text-sm text-slate-500">
-        © SmartDorm · ติดต่อ{" "}
-        <a href={telHref} className="font-medium text-accent">{CONTACT.phone}</a>
-      </footer>
+      <Footer />
 
-      {showLogin && !user && <LoginModal onClose={() => setShowLogin(false)} />}
+      {showLogin && !user && <AuthModal onClose={() => setShowLogin(false)} />}
     </div>
-  );
+  )
 }

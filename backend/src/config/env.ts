@@ -1,32 +1,25 @@
 import dotenv from 'dotenv'
-import { z } from 'zod'
 
-const nodeEnv = process.env.NODE_ENV ?? 'development'
+const nodeEnv = process.env.NODE_ENV || 'development'
 dotenv.config({ path: `.env.${nodeEnv}` })
 dotenv.config()
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  // ตรงกับ proxy ใน frontend/vite.config.ts
-  PORT: z.coerce.number().int().positive().default(3000),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  WATER_RATE: z.coerce.number().nonnegative().default(18),
-  ELECTRIC_RATE: z.coerce.number().nonnegative().default(8),
-  UPLOAD_DIR: z.string().default('uploads'),
-  APP_TIMEZONE: z
-    .string()
-    .default('Asia/Bangkok')
-    .refine((value) => {
-      try {
-        new Intl.DateTimeFormat('en-US', { timeZone: value })
-        return true
-      } catch {
-        return false
-      }
-    }, 'APP_TIMEZONE ไม่ถูกต้อง'),
-})
+if (!process.env.DATABASE_URL) {
+  throw new Error('กรุณาตั้งค่า DATABASE_URL ในไฟล์ .env')
+}
+if (!process.env.JWT_SECRET) {
+  throw new Error('กรุณาตั้งค่า JWT_SECRET ในไฟล์ .env')
+}
 
-export const env = envSchema.parse(process.env)
+export const env = {
+  NODE_ENV: nodeEnv,
+  // ตรงกับ proxy ใน frontend/vite.config.ts
+  PORT: Number(process.env.PORT) || 3000,
+  DATABASE_URL: process.env.DATABASE_URL,
+  JWT_SECRET: process.env.JWT_SECRET,
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  WATER_RATE: Number(process.env.WATER_RATE) || 18,
+  ELECTRIC_RATE: Number(process.env.ELECTRIC_RATE) || 8,
+  UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',
+}

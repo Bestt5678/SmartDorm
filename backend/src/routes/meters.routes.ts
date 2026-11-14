@@ -1,66 +1,114 @@
 import { Router } from 'express'
-import { asyncHandler, parseId } from '../lib/http'
-import { requireAuth, requireRole } from '../middleware/auth'
-import { validate, validated } from '../middleware/validate'
-import {
-  meterCreateSchema,
-  meterListQuerySchema,
-  meterUpdateSchema,
-  type MeterCreateInput,
-  type MeterListQuery,
-} from '../schemas/meter'
-import {
-  createMeter,
-  deleteMeter,
-  listMeters,
-  updateMeter,
-} from '../services/meter.service'
+import { prisma } from '../lib/prisma'
+import { isDateText, toDate } from '../lib/thaiDate'
+import { requireAuth, requireRole } from '../middleware/requireAuth'
 
 const router = Router()
 
-router.get(
-  '/',
-  requireAuth,
-  requireRole('STAFF', 'ADMIN'),
-  validate({ query: meterListQuerySchema }),
-  asyncHandler(async (req, res) => {
-    const query = validated<MeterListQuery>(req, 'query')
-    res.json(await listMeters(query))
-  }),
-)
+const meterInclude = { room: true }
 
-router.post(
-  '/',
-  requireAuth,
-  requireRole('STAFF', 'ADMIN'),
-  validate({ body: meterCreateSchema }),
-  asyncHandler(async (req, res) => {
-    const body = validated<MeterCreateInput>(req, 'body')
-    res.status(201).json(await createMeter(body))
-  }),
-)
+function checkUnit(value: any) {
+  const unit = Number(value)
+  return value !== '' && !isNaN(unit) && unit >= 0
+}
 
-router.patch(
-  '/:meterId',
-  requireAuth,
-  requireRole('STAFF', 'ADMIN'),
-  validate({ body: meterUpdateSchema }),
-  asyncHandler(async (req, res) => {
-    const meterId = parseId(req.params.meterId, 'meterId')
-    const body = validated<Partial<MeterCreateInput>>(req, 'body')
-    res.json(await updateMeter(meterId, body))
-  }),
-)
+router.get('/', requireAuth, requireRole('STAFF', 'ADMIN'), async (req, res) => {
+  const meters = await prisma.utilityMeter.findMany({
+    include: meterInclude,
+    orderBy: [{ meter_month: 'desc' }, { meter_id: 'desc' }],
+  })
+  res.json(meters)
+})
 
-router.delete(
-  '/:meterId',
-  requireAuth,
-  requireRole('STAFF', 'ADMIN'),
-  asyncHandler(async (req, res) => {
-    const meterId = parseId(req.params.meterId, 'meterId')
-    await deleteMeter(meterId)
-    res.status(204).send()
-  }),
-)
+router.post('/', requireAuth, requireRole('STAFF', 'ADMIN'), async (req, res) => {
+  const room_id = Number(req.body.room_id)
+  const water_unit = req.body.water_unit ?? 0
+  const electric_unit = req.body.electric_unit ?? 0
+
+  if (!room_id) {
+    return res.status(400).json({ message: 'กรุณาเลือกห้อง' })
+  }
+  if (!isDateText(req.body.meter_month)) {
+    return res.status(400).json({ message: 'กรุณาเลือกเดือนที่จด' })
+  }
+  if (!checkUnit(water_unit) || !checkUnit(electric_unit)) {
+    return res.status(400).json({ message: 'หน่วยน้ำ/ไฟต้องเป็นตัวเลขที่ไม่ติดลบ' })
+  }
+
+  const room = await prisma.room.findUnique({ where: { room_id: room_id } })
+  if (!room) {
+    return res.status(404).json({ message: 'ไม่พบห้องพัก' })
+  }
+
+  const meter = await prisma.utilityMeter.create({
+    data: {
+      room_id: room_id,
+      meter_month: toDate(req.body.meter_month),
+      water_unit: Number(water_unit),
+      electric_unit: Number(electric_unit),
+    },
+    include: meterInclude,
+  })
+  res.status(201).json(meter)
+})
+
+router.patch('/:id', requireAuth, requireRole('STAFF', 'ADMIN'), async (req, res) => {
+  const meter_id = Number(req.params.id) || 0
+  const meter = await prisma.utilityMeter.findUnique({ where: { meter_id: meter_id } })
+  if (!meter) {
+    return res.status(404).json({ message: 'ไม่พบมิเตอร์' })
+  }
+
+  const data: any = {}
+  if (req.body.room_id !== undefined) {
+    data.room_id = Number(req.body.room_id)
+    const room = await prisma.room.findUnique({ where: { room_id: data.room_id || 0 } })
+    if (!room) {
+      return res.status(404).json({ message: 'ไม่พบห้องพัก' })
+    }
+  }
+  if (req.body.meter_month !== undefined) {
+    if (!isDateText(req.body.meter_month)) {
+      return res.status(400).json({ message: 'รูปแบบวันที่ต้องเป็น YYYY-MM-DD' })
+    }
+    data.meter_month = toDate(req.body.meter_month)
+  }
+  if (req.body.water_unit !== undefined) {
+    if (!checkUnit(req.body.water_unit)) {
+      return res.status(400).json({ message: 'หน่วยน้ำต้องเป็นตัวเลขที่ไม่ติดลบ' })
+    }
+    data.water_unit = Number(req.body.water_unit)
+  }
+  if (req.body.electric_unit !== undefined) {
+    if (!checkUnit(req.body.electric_unit)) {
+      return res.status(400).json({ message: 'หน่วยไฟต้องเป็นตัวเลขที่ไม่ติดลบ' })
+    }
+    data.electric_unit = Number(req.body.electric_unit)
+  }
+
+  const updated = await prisma.utilityMeter.update({
+    where: { meter_id: meter_id },
+    data: data,
+    include: meterInclude,
+  })
+  res.json(updated)
+})
+
+router.delete('/:id', requireAuth, requireRole('STAFF', 'ADMIN'), async (req, res) => {
+  const meter_id = Number(req.params.id) || 0
+  const meter = await prisma.utilityMeter.findUnique({
+    where: { meter_id: meter_id },
+    include: { invoices: true },
+  })
+  if (!meter) {
+    return res.status(404).json({ message: 'ไม่พบมิเตอร์' })
+  }
+  // FK เป็น SET NULL ถ้าลบไปใบแจ้งหนี้จะเสียข้อมูลอ้างอิง เลยต้องกันไว้เอง
+  if (meter.invoices.length > 0) {
+    return res.status(409).json({ message: 'ไม่สามารถลบมิเตอร์ที่ออกใบแจ้งหนี้แล้วได้' })
+  }
+  await prisma.utilityMeter.delete({ where: { meter_id: meter_id } })
+  res.status(204).send()
+})
 
 export default router

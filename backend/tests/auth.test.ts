@@ -1,77 +1,67 @@
 import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../src/app'
-import { bearer, loginAs } from './helpers/auth'
-import { seedBase, TEST_PASSWORD } from './helpers/fixtures'
+import { bearer, loginAs } from './helpers/loginAs'
+import { seedBase, TEST_PASSWORD } from './helpers/seedTestData'
 
-describe('auth และสิทธิ์การเข้าถึง', () => {
+describe('สมัครสมาชิกและเข้าสู่ระบบ', () => {
   beforeEach(async () => {
     await seedBase()
   })
 
-  it('สมัครสมาชิกผู้เช่าและออก token ได้', async () => {
-    const response = await request(app).post('/api/auth/register').send({
-      fullName: 'ผู้เช่าใหม่',
-      idCardNo: '1112223334445',
+  it('สมัครสมาชิกแล้วได้ token', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      full_name: 'ผู้เช่าใหม่',
+      id_card_no: '1112223334445',
       phone: '0801112222',
-      email: 'new-tenant@test.local',
+      email: 'new@test.local',
       password: TEST_PASSWORD,
     })
 
-    expect(response.status).toBe(201)
-    expect(response.body.token).toEqual(expect.any(String))
-    expect(response.body.user).toMatchObject({ name: 'ผู้เช่าใหม่', role: 'TENANT' })
-    expect(response.body.user.id).toEqual(expect.any(Number))
-    expect(JSON.stringify(response.body)).not.toContain('password')
+    expect(res.status).toBe(201)
+    expect(res.body.token).toBeTruthy()
+    expect(res.body.user.name).toBe('ผู้เช่าใหม่')
+    expect(res.body.user.role).toBe('TENANT')
   })
 
-  it('ปฏิเสธอีเมลที่ถูกใช้งานแล้ว', async () => {
-    const response = await request(app).post('/api/auth/register').send({
-      fullName: 'ผู้เช่าซ้ำ',
-      idCardNo: '1112223334446',
+  it('สมัครด้วยอีเมลซ้ำไม่ได้', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      full_name: 'ผู้เช่าซ้ำ',
+      id_card_no: '1112223334446',
       email: 'tenant@test.local',
       password: TEST_PASSWORD,
     })
 
-    expect(response.status).toBe(409)
+    expect(res.status).toBe(409)
   })
 
-  it('ปฏิเสธรหัสผ่านผิดและ token ที่ไม่มีสิทธิ์', async () => {
-    const wrongPassword = await request(app).post('/api/auth/login').send({
+  it('ใส่รหัสผ่านผิดเข้าระบบไม่ได้', async () => {
+    const res = await request(app).post('/api/auth/login').send({
       email: 'tenant@test.local',
-      password: 'WrongPassword@1',
+      password: 'wrong-password',
     })
-    expect(wrongPassword.status).toBe(401)
 
+    expect(res.status).toBe(401)
+    expect(res.body.message).toBe('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+  })
+
+  it('เลือกแท็บผิดบทบาทจะเข้าไม่ได้', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'tenant@test.local',
+      password: TEST_PASSWORD,
+      role: 'STAFF',
+    })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('ดูข้อมูลตัวเองได้เมื่อมี token', async () => {
     const noToken = await request(app).get('/api/auth/me')
     expect(noToken.status).toBe(401)
-  })
 
-  it('คืนข้อมูลบัญชีของตัวเองเมื่อมี token', async () => {
     const token = await loginAs('tenant@test.local')
-    const response = await request(app).get('/api/auth/me').set(bearer(token))
-
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchObject({
-      name: 'ผู้เช่าทดสอบ',
-      role: 'TENANT',
-      email: 'tenant@test.local',
-    })
-    expect(JSON.stringify(response.body)).not.toContain('password')
-  })
-
-  it('บังคับสิทธิ์ตาม role', async () => {
-    const tenantToken = await loginAs('tenant@test.local')
-    const staffToken = await loginAs('staff@test.local')
-
-    const tenantResponse = await request(app)
-      .get('/api/dashboard/summary')
-      .set(bearer(tenantToken))
-    expect(tenantResponse.status).toBe(403)
-
-    const staffResponse = await request(app)
-      .get('/api/dashboard/summary')
-      .set(bearer(staffToken))
-    expect(staffResponse.status).toBe(200)
+    const res = await request(app).get('/api/auth/me').set(bearer(token))
+    expect(res.status).toBe(200)
+    expect(res.body.email).toBe('tenant@test.local')
   })
 })

@@ -1,56 +1,46 @@
 import cors from 'cors'
-import express from 'express'
-import rateLimit from 'express-rate-limit'
-import helmet from 'helmet'
-import morgan from 'morgan'
+import express, { NextFunction, Request, Response } from 'express'
+import { MulterError } from 'multer'
 import { env } from './config/env'
-import { toSnake } from './lib/case'
-import { prisma } from './lib/prisma'
-import { errorHandler, notFound } from './middleware/error'
-import { apiRouter } from './routes'
+import { apiRouter } from './routes/apiRouter'
 
 export const app = express()
 
-app.use(helmet())
-app.use(
-  cors({
-    origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
-    credentials: true,
-  }),
-)
-app.use(express.json({ limit: '1mb' }))
+app.use(cors({ origin: env.CORS_ORIGIN.split(','), credentials: true }))
+app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-if (env.NODE_ENV !== 'test') {
-  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
-}
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: 'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง' },
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' })
 })
 
-app.get('/health', async (_req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`
-    res.json({ status: 'ok', service: 'smartdorm-api', database: 'ok' })
-  } catch {
-    res.status(503).json({ status: 'error', service: 'smartdorm-api', database: 'unreachable' })
-  }
-})
-
-// ทุก response ของ /api ส่ง key เป็น snake_case ให้ตรงกับ frontend
-app.use('/api', (_req, res, next) => {
-  const json = res.json.bind(res)
-  res.json = (body: unknown) => json(toSnake(body))
-  next()
-})
-
-app.use('/api/auth', authLimiter)
 app.use('/api', apiRouter)
 
-app.use(notFound)
-app.use(errorHandler)
+app.use((req, res) => {
+  res.status(404).json({ message: 'ไม่พบหน้าที่ต้องการ' })
+})
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 5MB)' })
+    }
+    return res.status(400).json({ message: 'อัปโหลดไฟล์ไม่สำเร็จ' })
+  }
+  if (err.status && err.status < 500) {
+    return res.status(err.status).json({ message: err.message })
+  }
+  if (err.code === 'P2002') {
+    return res.status(409).json({ message: 'ข้อมูลนี้มีอยู่แล้วในระบบ' })
+  }
+  if (err.code === 'P2003') {
+    return res
+      .status(409)
+      .json({ message: 'ไม่สามารถดำเนินการได้ เนื่องจากมีข้อมูลที่อ้างอิงอยู่' })
+  }
+  if (err.code === 'P2025') {
+    return res.status(404).json({ message: 'ไม่พบข้อมูลที่ต้องการ' })
+  }
+  console.log(err)
+  res.status(500).json({ message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' })
+})
